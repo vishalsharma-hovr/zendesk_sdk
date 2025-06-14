@@ -2,10 +2,13 @@ package com.example.zendesk_sdk
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import androidx.annotation.NonNull
-import zendesk.android.Zendesk
-import zendesk.messaging.Messaging
-import zendesk.messaging.MessagingActivity
+import com.zendesk.service.AnonymousIdentity
+import com.zendesk.service.Identity
+import zendesk.core.Zendesk
+import zendesk.support.Support
+import zendesk.support.guide.HelpCenterActivity
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -26,25 +29,29 @@ class ZendeskSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, Activity
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: MethodChannel.Result) {
     when (call.method) {
       "initialize" -> {
-        val url = call.argument<String>("url")!!
-        val appId = call.argument<String>("appId")!!
-        val clientId = call.argument<String>("clientId")!!
+        val url = call.argument<String>("zendeskUrl") ?: return result.error("MISSING_URL", "Missing zendeskUrl", null)
+        val appId = call.argument<String>("appId") ?: return result.error("MISSING_APPID", "Missing appId", null)
+        val clientId = call.argument<String>("clientId") ?: return result.error("MISSING_CLIENTID", "Missing clientId", null)
 
-        Zendesk.initialize(
-          context = context!!,
-          zendeskUrl = url,
-          applicationId = appId,
-          clientId = clientId
-        )
-        Messaging.setZendesk(Zendesk.instance)
+        Zendesk.INSTANCE.init(context, url, appId, clientId)
+        Support.INSTANCE.init(Zendesk.INSTANCE)
+
+        val identity: Identity = AnonymousIdentity()
+        Zendesk.INSTANCE.setIdentity(identity)
+
         result.success(null)
       }
+
       "showHelpCenter" -> {
-        activity?.let {
-          MessagingActivity.builder().show(it)
+        if (activity != null) {
+          val intent: Intent = HelpCenterActivity.builder().intent(activity)
+          activity!!.startActivity(intent)
+          result.success(null)
+        } else {
+          result.error("NO_ACTIVITY", "No activity attached", null)
         }
-        result.success(null)
       }
+
       else -> result.notImplemented()
     }
   }

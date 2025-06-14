@@ -11,11 +11,6 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
     }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let controller = UIApplication.shared.keyWindow?.rootViewController as? FlutterViewController else {
-            result(FlutterError(code: "NO_VIEW", message: "RootViewController is not FlutterViewController", details: nil))
-            return
-        }
-
         switch call.method {
         case "initialize":
             guard let args = call.arguments as? [String: Any],
@@ -23,36 +18,48 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
                   let appId = args["appId"] as? String,
                   let clientId = args["clientId"] as? String
             else {
-                result(FlutterError(code: "INVALID_ARGUMENTS", message: "Missing parameters", details: nil))
+                result(FlutterError(code: "INVALID_ARGUMENTS", message: "Missing required parameters", details: nil))
                 return
             }
 
-            Zendesk.initialize(appId: appId, clientId: clientId, zendeskUrl: zendeskUrl)
+            // ✅ Initialize Zendesk
+            Zendesk.initialize(appId: appId,
+                               clientId: clientId,
+                               zendeskUrl: zendeskUrl)
+
+            // ✅ Initialize Support SDK
             Support.initialize(withZendesk: Zendesk.instance)
 
+            // ✅ Set identity (anonymous for now)
             let identity = Identity.createAnonymous()
             Zendesk.instance?.setIdentity(identity)
 
-            // Show Help Center after initialization
-            showHelpCenter(from: controller, result: result)
+            // ✅ Show Help Center UI
+            DispatchQueue.main.async {
+                if let rootVC = UIApplication.shared.keyWindow?.rootViewController {
+                    let requestConfig = RequestUiConfiguration()
+                    let helpCenter = HelpCenterUi.buildHelpCenterOverviewUi(withConfigs: [requestConfig])
+                    rootVC.present(helpCenter, animated: true, completion: nil)
+                    result(nil)
+                } else {
+                    result(FlutterError(code: "NO_VIEW", message: "No root view controller found", details: nil))
+                }
+            }
 
         case "showHelpCenter":
-            showHelpCenter(from: controller, result: result)
+            DispatchQueue.main.async {
+                if let rootVC = UIApplication.shared.keyWindow?.rootViewController {
+                    let requestConfig = RequestUiConfiguration()
+                    let helpCenter = HelpCenterUi.buildHelpCenterOverviewUi(withConfigs: [requestConfig])
+                    rootVC.present(helpCenter, animated: true, completion: nil)
+                    result(nil)
+                } else {
+                    result(FlutterError(code: "NO_VIEW", message: "No root view controller found", details: nil))
+                }
+            }
 
         default:
             result(FlutterMethodNotImplemented)
-        }
-    }
-
-    // ✅ Helper method to present the Help Center
-    private func showHelpCenter(from controller: FlutterViewController, result: @escaping FlutterResult) {
-        DispatchQueue.main.async {
-            let helpCenter = HelpCenterUi.buildHelpCenterOverviewUi(withConfigs: [])
-            let navController = UINavigationController(rootViewController: helpCenter)
-            navController.modalPresentationStyle = .fullScreen
-            controller.present(navController, animated: true) {
-                result(nil)
-            }
         }
     }
 }
