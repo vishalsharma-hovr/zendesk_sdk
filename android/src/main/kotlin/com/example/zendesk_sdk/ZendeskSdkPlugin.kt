@@ -51,14 +51,15 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
         }
       }
       "showHelpCenter" -> {
-    if (activity != null) {
-        val intent: Intent = HelpCenterActivity.builder().intent(activity!!)
-        activity!!.startActivity(intent)
-        result.success(null)
-    } else {
-        result.error("NO_ACTIVITY", "No activity attached", null)
-    }
-}
+        try {
+          val ctx = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
+          val intent = HelpCenterActivity.builder().intent(ctx)
+          ctx.startActivity(intent)
+          result.success(null)
+        } catch (e: Exception) {
+          result.error("LAUNCH_FAILED", e.localizedMessage, null)
+        }
+      }
       else -> result.notImplemented()
     }
   }
