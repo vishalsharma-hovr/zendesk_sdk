@@ -3,6 +3,8 @@ description: A Flutter plugin that integrates Zendesk Messaging SDK for Android 
 version: 1.0.0+1
 
 homepage: https://github.com/vishalsharma-hovr/zendesk_sdk
+repository: https://github.com/vishalsharma-hovr/zendesk_sdk
+issue_tracker: https://github.com/vishalsharma-hovr/zendesk_sdk/issues
 
 environment:
   sdk: ^3.8.1

@@ -1,3 +1,2 @@
-## 1.0.0
-
-Initial plugin.
+## 1.0.0+1
+- Initial release with basic Zendesk Messaging SDK integration.
