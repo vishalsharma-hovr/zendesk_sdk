@@ -38,17 +38,56 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(title: const Text('Zendesk SDK Plugin Example')),
-        body: Center(
-          child: ElevatedButton(
-            onPressed: () async {
-              try {
-                await _zendeskSdkPlugin.showHelpCenter();
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to open Help Center: $e')));
-              }
-            },
-            child: const Text("Open Zendesk Help Center"),
-          ),
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  await _zendeskSdkPlugin.showHelpCenter();
+                } catch (e) {
+                  debugPrint('Zendesk init error: ${e}');
+                  // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to open Help Center: $e')));
+                }
+              },
+              child: const Text("Open Zendesk Help Center"),
+            ),
+
+            // ElevatedButton(
+            //   onPressed: () async {
+            //     try {
+            //       await _zendeskSdkPlugin.showHelpWithArticleId(articleId: "");
+            //     } catch (e) {
+            //       debugPrint('Zendesk init error: ${e}');
+            //       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to open Help Center: $e')));
+            //     }
+            //   },
+            //   child: const Text("Open Zendesk Help Center with Article Id"),
+            // ),
+            // ElevatedButton(
+            //   onPressed: () async {
+            //     try {
+            //       await _zendeskSdkPlugin.startChatBot();
+            //     } catch (e) {
+            //       debugPrint('Zendesk init error: ${e}');
+            //       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to open Help Center: $e')));
+            //     }
+            //   },
+            //   child: const Text("Open Zendesk Bot"),
+            // ),
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  await _zendeskSdkPlugin.sendUserInformationForTicket(name: "Vishal", tripId: "tripId", userId: "userId");
+                } catch (e) {
+                  debugPrint('Zendesk init error: ${e}');
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to open Help Center: $e')));
+                }
+              },
+              child: const Text("Send User Information"),
+            ),
+          ],
         ),
       ),
     );

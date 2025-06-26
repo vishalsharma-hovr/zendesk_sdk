@@ -1,6 +1,6 @@
 name: zendesk_sdk
 description: A Flutter plugin that integrates Zendesk Messaging SDK for Android and iOS.
-version: 1.0.0+1
+version: 1.0.1+2
 
 homepage: https://github.com/vishalsharma-hovr/zendesk_sdk
 repository: https://github.com/vishalsharma-hovr/zendesk_sdk

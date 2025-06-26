@@ -14,7 +14,9 @@ Pod::Spec.new do |s|
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
   s.dependency 'ZendeskCoreSDK'
+  s.dependency 'ZendeskChatSDK'
   s.dependency 'ZendeskSupportSDK'
+  s.dependency 'ZendeskAnswerBotSDK'
   s.platform = :ios, '12.0'
   s.ios.deployment_target = '12.0'
 

@@ -4,8 +4,19 @@ PODS:
     - Flutter
   - zendesk_sdk (0.0.1):
     - Flutter
+    - ZendeskAnswerBotSDK
+    - ZendeskChatSDK
     - ZendeskCoreSDK
     - ZendeskSupportSDK
+  - ZendeskAnswerBotProvidersSDK (6.0.0):
+    - ZendeskSupportProvidersSDK (~> 9.0.0)
+  - ZendeskAnswerBotSDK (6.0.1):
+    - ZendeskAnswerBotProvidersSDK (~> 6.0.0)
+    - ZendeskMessagingSDK (~> 6.1.0)
+  - ZendeskChatProvidersSDK (5.0.5)
+  - ZendeskChatSDK (5.0.6):
+    - ZendeskChatProvidersSDK (~> 5.0.5)
+    - ZendeskMessagingSDK (~> 6.1.0)
   - ZendeskCommonUISDK (9.1.0)
   - ZendeskCoreSDK (5.0.5)
   - ZendeskMessagingAPISDK (6.0.2):
@@ -27,6 +38,10 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - ZendeskAnswerBotProvidersSDK
+    - ZendeskAnswerBotSDK
+    - ZendeskChatProvidersSDK
+    - ZendeskChatSDK
     - ZendeskCommonUISDK
     - ZendeskCoreSDK
     - ZendeskMessagingAPISDK
@@ -46,7 +61,11 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
-  zendesk_sdk: f9d64f2fada5975e10862030ac4fe3ffb09c06d0
+  zendesk_sdk: 4b474b190dcbb5ac778433aa685f51e41ee7ccc9
+  ZendeskAnswerBotProvidersSDK: 2f3d0e38acdbd4507862b4e4a7b28d3764072854
+  ZendeskAnswerBotSDK: 6dcc01105f5a7eb1d183b5b8f1c449d49f25db39
+  ZendeskChatProvidersSDK: 5cfc4a3dee03317ba54920e3258edda52ff9a329
+  ZendeskChatSDK: ed0424221923aa0b82397fec8b4306fab6645942
   ZendeskCommonUISDK: 1ad4f0051a999a5e56f09f789f916afe15e00419
   ZendeskCoreSDK: c542b3f82abc3ee52e1291c6fb3436515e098806
   ZendeskMessagingAPISDK: 5b3a9d16f2f4d8b3c07b4ca0451a7cf9bfd8107d

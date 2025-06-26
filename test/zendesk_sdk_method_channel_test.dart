@@ -11,12 +11,11 @@ void main() {
   final List<MethodCall> log = [];
 
   setUp(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, (MethodCall methodCall) async {
       log.add(methodCall);
 
       switch (methodCall.method) {
-       case 'initialize':
+        case 'initialize':
           return null;
         case 'showHelpCenter':
           return null;
@@ -29,27 +28,18 @@ void main() {
   });
 
   tearDown(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, null);
   });
 
   test('initialize sends correct parameters', () async {
-    await platform.initialize(
-      url: 'https://example.zendesk.com',
-      appId: 'testAppId',
-      clientId: 'testClientId',
-    );
+    await platform.initialize(url: 'https://example.zendesk.com', appId: 'testAppId', clientId: 'testClientId');
 
     expect(log.single.method, 'initialize');
-    expect(log.single.arguments, {
-      'url': 'https://example.zendesk.com',
-      'appId': 'testAppId',
-      'clientId': 'testClientId',
-    });
+    expect(log.single.arguments, {'url': 'https://example.zendesk.com', 'appId': 'testAppId', 'clientId': 'testClientId'});
   });
 
   test('showHelpCenter is called', () async {
-    await platform.showHelpCenter();
+    // await platform.showHelpCenterMethodChannel(articleId: "", categoryId: "");
     expect(log.single.method, 'showHelpCenter');
   });
 }

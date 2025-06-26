@@ -2,6 +2,7 @@
     <application
         android:label="zendesk_sdk_example"
         android:name="${applicationName}"
+        android:theme="@style/Theme.ZendeskSdkExample"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

@@ -22,4 +22,20 @@ abstract class ZendeskSdkPlatform extends PlatformInterface {
   Future<void> showHelpCenter() {
     throw UnimplementedError('showHelpCenter() has not been implemented.');
   }
+
+  Future<void> showHelpCenterArticleId({required String articleId}) {
+    throw UnimplementedError('showHelpCenterWithArticleId() has not been implemented.');
+  }
+
+  Future<void> showHelpCenterCategoryId({required String categoryId}) {
+    throw UnimplementedError('showHelpCenterWithCategoryId() has not been implemented.');
+  }
+
+  Future<void> sendUserInformationForTicket({required String name, required String userId, required String tripId}) {
+    throw UnimplementedError('sendUserInformationForTicket() has not been implemented');
+  }
+
+  Future<void> startChatBot() {
+    throw UnimplementedError('startBot() has not been implemented.');
+  }
 }

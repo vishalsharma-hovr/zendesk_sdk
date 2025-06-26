@@ -2,6 +2,13 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven {
+            url = uri("https://zendesk.jfrog.io/artifactory/repo")
+        }
+
+        maven {
+            url = uri("https://zendesk.jfrog.io/artifactory/repo")
+        }
     }
 }
 

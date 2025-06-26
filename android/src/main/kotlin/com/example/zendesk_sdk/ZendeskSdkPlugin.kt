@@ -2,17 +2,23 @@ package com.example.zendesk_sdk
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import androidx.annotation.NonNull
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import zendesk.classic.messaging.MessagingActivity
 import zendesk.core.AnonymousIdentity
 import zendesk.core.Identity
 import zendesk.core.Zendesk
 import zendesk.support.Support
 import zendesk.support.guide.HelpCenterActivity
+import zendesk.answerbot.AnswerBot;
+import zendesk.answerbot.AnswerBotEngine
+import zendesk.classic.messaging.MessagingConfiguration
+import zendesk.support.request.RequestActivity
 
 class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware {
   private lateinit var channel: MethodChannel
@@ -51,15 +57,71 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
         }
       }
       "showHelpCenter" -> {
+        val categoryId = call.argument<Long>("articleId")
         try {
           val ctx = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
-          val intent = HelpCenterActivity.builder().intent(ctx)
+          val intent = HelpCenterActivity.builder().withArticlesForCategoryIds(categoryId).intent(ctx)
           ctx.startActivity(intent)
           result.success(null)
         } catch (e: Exception) {
           result.error("LAUNCH_FAILED", e.localizedMessage, null)
         }
       }
+
+      "sendUserInformationForTicket" -> {
+        val name = call.argument<String>("name") ?: ""
+        val userId = call.argument<String>("userId") ?: ""
+        val tripId = call.argument<String>("tripId") ?: ""
+
+        if (name.isEmpty() || userId.isEmpty() || tripId.isEmpty()) {
+          result.error("INVALID_ARGUMENTS", "Missing name, userId, or tripId", null)
+          return
+        }
+
+        val context = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
+
+        // ✅ Combine all info into name or include in tags
+        val combinedName = "$name | UserID: $userId | TripID: $tripId"
+
+        // ✅ Set identity for Support SDK
+        val identity = AnonymousIdentity.Builder()
+          .withNameIdentifier(combinedName)
+          .withEmailIdentifier(userId)
+          .build()
+        Zendesk.INSTANCE.setIdentity(identity)
+
+        // ✅ Launch RequestActivity (Support SDK ticket form)
+        val config = RequestActivity.builder()
+//          .withRequestSubject("Trip Support Request")
+          .withTags(listOf("user_id:$userId", "trip_id:$tripId"))
+          .intent(context)
+
+        context.startActivity(config)
+        result.success(null)
+      }
+
+
+//      "startChatBot" -> {
+//        try {
+//          val ctx = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
+//
+//          // Initialize AnswerBot
+//          AnswerBot.INSTANCE.init(Zendesk.INSTANCE, Support.INSTANCE)
+//          val answerBotEngine = AnswerBotEngine.engine()
+////          val messagingConfig = MessagingConfiguration.builder().build()
+//
+//          // Show AnswerBot chat
+//          MessagingActivity.builder()
+//            .withEngines(answerBotEngine)
+////            .withConfigs(messagingConfig)
+//            .show(ctx)
+//
+//          result.success(null)
+//        } catch (e: Exception) {
+//          result.error("LAUNCH_FAILED", e.localizedMessage, null)
+//        }
+//      }
+
       else -> result.notImplemented()
     }
   }
