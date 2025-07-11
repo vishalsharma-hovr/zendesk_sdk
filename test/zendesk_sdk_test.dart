@@ -11,7 +11,7 @@ class MockZendeskSdkPlatform with MockPlatformInterfaceMixin implements ZendeskS
   }
 
   @override
-  Future<void> showHelpCenter() async {
+  Future<void> showHelpCenter({required String name, required String userId}) async {
     // Mock behavior
   }
 
@@ -29,6 +29,11 @@ class MockZendeskSdkPlatform with MockPlatformInterfaceMixin implements ZendeskS
   Future<void> showHelpCenterCategoryId({required String categoryId}) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> sendUserInformationForTicket({required String name, required String userId, required String tripId}) {
+    throw UnimplementedError();
+  }
 }
 
 void main() {
@@ -44,7 +49,7 @@ void main() {
 
     await zendesk.initialize(url: 'https://example.zendesk.com', appId: 'fakeAppId', clientId: 'fakeClientId');
 
-    await zendesk.showHelpCenter();
+    await zendesk.showHelpCenter(name: "Name", userId: "UserId");
 
     await zendesk.showHelpWithArticleId(articleId: "");
 

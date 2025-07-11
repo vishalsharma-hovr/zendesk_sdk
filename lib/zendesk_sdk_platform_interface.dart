@@ -19,7 +19,7 @@ abstract class ZendeskSdkPlatform extends PlatformInterface {
     throw UnimplementedError('initialize() has not been implemented.');
   }
 
-  Future<void> showHelpCenter() {
+  Future<void> showHelpCenter({required String name, required String userId}) {
     throw UnimplementedError('showHelpCenter() has not been implemented.');
   }
 

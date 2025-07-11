@@ -59,9 +59,39 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
       "showHelpCenter" -> {
         val categoryId = call.argument<Long>("articleId")
         try {
-          val ctx = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
-          val intent = HelpCenterActivity.builder().withArticlesForCategoryIds(categoryId).intent(ctx)
-          ctx.startActivity(intent)
+          val name = call.argument<String>("name") ?: ""
+          val userId = call.argument<String>("userId") ?: ""
+
+          if (name.isEmpty() || userId.isEmpty()) {
+            result.error("INVALID_ARGUMENTS", "Missing name, userId,", null)
+            return
+          }
+
+//          val context = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
+
+          // ✅ Combine all info into name or include in tags
+          val combinedName = "$name | UserID: $userId"
+
+          val context = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
+
+          // ✅ 1. Set Zendesk Identity (required before launching any screens)
+          val identity = AnonymousIdentity.Builder()
+            .withNameIdentifier(combinedName)
+//            .withEmailIdentifier()
+            .build()
+          Zendesk.INSTANCE.setIdentity(identity)
+
+          // ✅ 2. Configure default ticket settings (applies when "Contact Us" is pressed)
+          RequestActivity.builder()
+            .withTags(listOf("user_id:$userId", "mobile_app")) // Tags for new tickets
+            .config() // Apply globally
+
+          // ✅ 3. Launch Help Center with Contact Button enabled
+          HelpCenterActivity.builder()
+            .withArticlesForCategoryIds(listOf(categoryId)) // Show specific category
+            .withContactUsButtonVisible(true) // Allow ticket creation
+            .show(context)
+
           result.success(null)
         } catch (e: Exception) {
           result.error("LAUNCH_FAILED", e.localizedMessage, null)

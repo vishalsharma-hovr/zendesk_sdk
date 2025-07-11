@@ -45,7 +45,7 @@ class _MyAppState extends State<MyApp> {
             ElevatedButton(
               onPressed: () async {
                 try {
-                  await _zendeskSdkPlugin.showHelpCenter();
+                  await _zendeskSdkPlugin.showHelpCenter(name: "Testing User", userId: "UserId");
                 } catch (e) {
                   debugPrint('Zendesk init error: ${e}');
                   // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to open Help Center: $e')));
@@ -79,7 +79,7 @@ class _MyAppState extends State<MyApp> {
             ElevatedButton(
               onPressed: () async {
                 try {
-                  await _zendeskSdkPlugin.sendUserInformationForTicket(name: "Vishal", tripId: "tripId", userId: "userId");
+                  await _zendeskSdkPlugin.sendUserInformationForTicket(name: "Testing User", tripId: "tripId", userId: "userId");
                 } catch (e) {
                   debugPrint('Zendesk init error: ${e}');
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to open Help Center: $e')));

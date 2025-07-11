@@ -12,8 +12,8 @@ class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
   }
 
   @override
-  Future<void> showHelpCenter() async {
-    await methodChannel.invokeMethod('showHelpCenter');
+  Future<void> showHelpCenter({required String name, required String userId}) async {
+    await methodChannel.invokeMethod('showHelpCenter', {"name": name, "userId": userId});
   }
 
   @override

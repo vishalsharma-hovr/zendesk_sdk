@@ -5,8 +5,8 @@ class ZendeskSdk {
     return ZendeskSdkPlatform.instance.initialize(url: url, appId: appId, clientId: clientId);
   }
 
-  Future<void> showHelpCenter() {
-    return ZendeskSdkPlatform.instance.showHelpCenter();
+  Future<void> showHelpCenter({required String name, required String userId}) {
+    return ZendeskSdkPlatform.instance.showHelpCenter(name: name, userId: userId);
   }
 
   Future<void> startChatBot() {

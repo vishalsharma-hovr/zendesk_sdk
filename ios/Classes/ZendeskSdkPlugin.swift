@@ -109,7 +109,7 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
                 // ✅ Create Request UI (ticket submission)
             let requestConfig = RequestUiConfiguration()
             requestConfig.tags = ["user_id:\(userId)", "trip_id:\(tripId)"]
-//            requestConfig.subject = "Trip Support Request"
+//       requestConfig.subject = "Trip Support Request"
             
             let requestVC = RequestUi.buildRequestUi(with: [requestConfig])
             let navController = UINavigationController(rootViewController: requestVC)
@@ -206,16 +206,38 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
                         code: "NO_VIEW",
                         message: "No root view controller found",
                         details: nil
-                    ))
+                    )
+                )
                 return
             }
+                // Extract user info
+            guard let args = call.arguments as? [String: Any],
+                  let name = args["name"] as? String,
+                  let userId = args["userId"] as? String
+            else {
+                result(
+                    FlutterError(
+                        code: "INVALID_ARGUMENTS",
+                        message: "Missing required fields: name, userId, or tripId",
+                        details: nil
+                    )
+                )
+                return
+            }
+            // Combine user info into a single display name
+            let combinedName = "\(name) | UserID: \(userId)"
+            
+            // Set identity
+            let identity = Identity.createAnonymous(name: combinedName, email: userId)
+            Zendesk.instance?.setIdentity(identity)
 
+            let requestConfig = RequestUiConfiguration()
+            requestConfig.tags = ["user_id:\(userId)"]
+            
             // Configure Help Center for fullscreen presentation
             let helpCenterConfig = HelpCenterUiConfiguration()
             helpCenterConfig.showContactOptions = true
-
-            let requestConfig = RequestUiConfiguration()
-
+            
             // Build Help Center UI
             let helpCenterVC = HelpCenterUi.buildHelpCenterOverviewUi(
                 withConfigs: [helpCenterConfig, requestConfig]
