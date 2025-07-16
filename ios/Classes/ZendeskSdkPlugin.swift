@@ -213,7 +213,8 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
                 // Extract user info
             guard let args = call.arguments as? [String: Any],
                   let name = args["name"] as? String,
-                  let userId = args["userId"] as? String
+                  let userId = args["userId"] as? String,
+                  let categoryIdList = args["categoryIdList"] as? [NSNumber]
             else {
                 result(
                     FlutterError(
@@ -237,6 +238,8 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
             // Configure Help Center for fullscreen presentation
             let helpCenterConfig = HelpCenterUiConfiguration()
             helpCenterConfig.showContactOptions = true
+            helpCenterConfig.groupType = .category
+            helpCenterConfig.groupIds = categoryIdList
             
             // Build Help Center UI
             let helpCenterVC = HelpCenterUi.buildHelpCenterOverviewUi(

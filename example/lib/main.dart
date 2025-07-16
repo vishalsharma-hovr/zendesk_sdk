@@ -45,9 +45,14 @@ class _MyAppState extends State<MyApp> {
             ElevatedButton(
               onPressed: () async {
                 try {
-                  await _zendeskSdkPlugin.showHelpCenter(name: "Testing User", userId: "UserId");
+                  await _zendeskSdkPlugin.showHelpCenter(
+                    name: "Testing User",
+                    userId: "UserId",
+                    /* Add the category id as per your dashboard*/
+                    categoryIdList: [1, 2, 3],
+                  );
                 } catch (e) {
-                  debugPrint('Zendesk init error: ${e}');
+                  debugPrint('Zendesk init error: $e');
                   // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to open Help Center: $e')));
                 }
               },

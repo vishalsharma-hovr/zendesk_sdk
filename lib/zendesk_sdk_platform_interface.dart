@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'zendesk_sdk_method_channel.dart';
 
@@ -19,7 +21,7 @@ abstract class ZendeskSdkPlatform extends PlatformInterface {
     throw UnimplementedError('initialize() has not been implemented.');
   }
 
-  Future<void> showHelpCenter({required String name, required String userId}) {
+  Future<void> showHelpCenter({required String name, required String userId, required List<int> categoryIdList}) {
     throw UnimplementedError('showHelpCenter() has not been implemented.');
   }
 

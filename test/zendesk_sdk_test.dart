@@ -11,7 +11,7 @@ class MockZendeskSdkPlatform with MockPlatformInterfaceMixin implements ZendeskS
   }
 
   @override
-  Future<void> showHelpCenter({required String name, required String userId}) async {
+  Future<void> showHelpCenter({required String name, required String userId ,required List<int> categoryIdList}) async {
     // Mock behavior
   }
 
@@ -49,7 +49,7 @@ void main() {
 
     await zendesk.initialize(url: 'https://example.zendesk.com', appId: 'fakeAppId', clientId: 'fakeClientId');
 
-    await zendesk.showHelpCenter(name: "Name", userId: "UserId");
+    await zendesk.showHelpCenter(name: "Name", userId: "UserId",categoryIdList: [1,2,3]);
 
     await zendesk.showHelpWithArticleId(articleId: "");
 

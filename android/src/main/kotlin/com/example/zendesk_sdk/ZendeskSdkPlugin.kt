@@ -57,18 +57,16 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
         }
       }
       "showHelpCenter" -> {
-        val categoryId = call.argument<Long>("articleId")
         try {
           val name = call.argument<String>("name") ?: ""
           val userId = call.argument<String>("userId") ?: ""
+          val categoryIdList = call.argument<List<Long>>("categoryIdList") ?: emptyList()
 
           if (name.isEmpty() || userId.isEmpty()) {
             result.error("INVALID_ARGUMENTS", "Missing name, userId,", null)
             return
           }
-
 //          val context = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
-
           // ✅ Combine all info into name or include in tags
           val combinedName = "$name | UserID: $userId"
 
@@ -88,7 +86,7 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
 
           // ✅ 3. Launch Help Center with Contact Button enabled
           HelpCenterActivity.builder()
-            .withArticlesForCategoryIds(listOf(categoryId)) // Show specific category
+            .withArticlesForCategoryIds(categoryIdList) // Show specific category
             .withContactUsButtonVisible(true) // Allow ticket creation
             .show(context)
 
