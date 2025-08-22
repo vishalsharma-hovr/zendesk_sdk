@@ -11,7 +11,12 @@ class MockZendeskSdkPlatform with MockPlatformInterfaceMixin implements ZendeskS
   }
 
   @override
-  Future<void> showHelpCenter({required String name, required String userId ,required List<int> categoryIdList}) async {
+  Future<void> showHelpCenter({
+    required String name,
+    required String emailId,
+    required String userId,
+    required List<int> categoryIdList,
+  }) async {
     // Mock behavior
   }
 
@@ -31,7 +36,12 @@ class MockZendeskSdkPlatform with MockPlatformInterfaceMixin implements ZendeskS
   }
 
   @override
-  Future<void> sendUserInformationForTicket({required String name, required String userId, required String tripId}) {
+  Future<void> sendUserInformationForTicket({
+    required String name,
+    required String emailId,
+    required String userId,
+    required String tripId,
+  }) {
     throw UnimplementedError();
   }
 }
@@ -49,7 +59,7 @@ void main() {
 
     await zendesk.initialize(url: 'https://example.zendesk.com', appId: 'fakeAppId', clientId: 'fakeClientId');
 
-    await zendesk.showHelpCenter(name: "Name", userId: "UserId",categoryIdList: [1,2,3]);
+    await zendesk.showHelpCenter(name: "Name", emailId: "EmailId", userId: "UserId", categoryIdList: [1, 2, 3]);
 
     await zendesk.showHelpWithArticleId(articleId: "");
 

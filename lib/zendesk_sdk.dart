@@ -5,8 +5,8 @@ class ZendeskSdk {
     return ZendeskSdkPlatform.instance.initialize(url: url, appId: appId, clientId: clientId);
   }
 
-  Future<void> showHelpCenter({required String name, required String userId,required List<int> categoryIdList}) {
-    return ZendeskSdkPlatform.instance.showHelpCenter(name: name, userId: userId, categoryIdList: categoryIdList);
+  Future<void> showHelpCenter({required String name, required String emailId, required String userId, required List<int> categoryIdList}) {
+    return ZendeskSdkPlatform.instance.showHelpCenter(name: name, emailId: emailId, userId: userId, categoryIdList: categoryIdList);
   }
 
   Future<void> startChatBot() {
@@ -21,7 +21,12 @@ class ZendeskSdk {
     return ZendeskSdkPlatform.instance.showHelpCenterCategoryId(categoryId: categoryId);
   }
 
-  Future<void> sendUserInformationForTicket({required String name, required String userId, required String tripId}) {
-    return ZendeskSdkPlatform.instance.sendUserInformationForTicket(name: name, userId: userId, tripId: tripId);
+  Future<void> sendUserInformationForTicket({
+    required String name,
+    required String emailId,
+    required String userId,
+    required String tripId,
+  }) {
+    return ZendeskSdkPlatform.instance.sendUserInformationForTicket(name: name, emailId: emailId, userId: userId, tripId: tripId);
   }
 }

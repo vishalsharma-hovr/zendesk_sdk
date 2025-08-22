@@ -2,23 +2,20 @@ package com.example.zendesk_sdk
 
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
+import android.util.Log
 import androidx.annotation.NonNull
+import com.zendesk.service.ErrorResponse
+import com.zendesk.service.ZendeskCallback
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import zendesk.classic.messaging.MessagingActivity
-import zendesk.core.AnonymousIdentity
-import zendesk.core.Identity
-import zendesk.core.Zendesk
-import zendesk.support.Support
+import zendesk.core.*
+import zendesk.support.*
 import zendesk.support.guide.HelpCenterActivity
-import zendesk.answerbot.AnswerBot;
-import zendesk.answerbot.AnswerBotEngine
-import zendesk.classic.messaging.MessagingConfiguration
 import zendesk.support.request.RequestActivity
+import zendesk.support.requestlist.RequestListActivity
 
 class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware {
   private lateinit var channel: MethodChannel
@@ -51,11 +48,12 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
             Zendesk.INSTANCE.setIdentity(identity)
             result.success(null)
           }
-                  ?: result.error("NO_CONTEXT", "Context is null", null)
+            ?: result.error("NO_CONTEXT", "Context is null", null)
         } catch (e: Exception) {
           result.error("INIT_FAILED", e.localizedMessage, null)
         }
       }
+
       "showHelpCenter" -> {
         try {
           val name = call.argument<String>("name") ?: ""
@@ -66,31 +64,88 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
             result.error("INVALID_ARGUMENTS", "Missing name, userId,", null)
             return
           }
-//          val context = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
-          // ✅ Combine all info into name or include in tags
-          val combinedName = "$name | UserID: $userId"
 
           val context = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
+
+          // ✅ Combine all info into name or include in tags
+          val combinedName = "$name | UserID: $userId"
 
           // ✅ 1. Set Zendesk Identity (required before launching any screens)
           val identity = AnonymousIdentity.Builder()
             .withNameIdentifier(combinedName)
-//            .withEmailIdentifier()
             .build()
           Zendesk.INSTANCE.setIdentity(identity)
 
           // ✅ 2. Configure default ticket settings (applies when "Contact Us" is pressed)
-          RequestActivity.builder()
+          val requestActivityConfig = RequestActivity.builder()
             .withTags(listOf("user_id:$userId", "mobile_app")) // Tags for new tickets
             .config() // Apply globally
 
-          // ✅ 3. Launch Help Center with Contact Button enabled
-          HelpCenterActivity.builder()
-            .withArticlesForCategoryIds(categoryIdList) // Show specific category
-            .withContactUsButtonVisible(true) // Allow ticket creation
-            .show(context)
+          // ✅ 3. Use RequestProvider to get user's requests and show the most recent one
+          val requestProvider = Support.INSTANCE.provider()?.requestProvider()
 
-          result.success(null)
+          requestProvider?.getAllRequests(object : ZendeskCallback<List<Request>>() {
+            override fun onSuccess(requests: List<Request>?) {
+              if (!requests.isNullOrEmpty()) {
+                // Sort by creation date descending (most recent first)
+                val sortedRequests = requests.sortedByDescending { it.createdAt?.time }
+                val lastTicket = sortedRequests.first()
+
+                // ✅ Fix: Check if ticket ID is not null before using it
+                lastTicket.id?.let { ticketId ->
+                  RequestActivity.builder()
+                    .withRequestId(ticketId)
+                    .show(context, requestActivityConfig)
+                } ?: run {
+                  // ✅ Handle case where ticket ID is null - show help center
+                  HelpCenterActivity.builder()
+                    .withArticlesForCategoryIds(categoryIdList)
+                    .withContactUsButtonVisible(true)
+                    .show(context, requestActivityConfig)
+                }
+
+              } else {
+                // ✅ No tickets exist - show help center to create first ticket
+                HelpCenterActivity.builder()
+                  .withArticlesForCategoryIds(categoryIdList)
+                  .withContactUsButtonVisible(true)
+                  .show(context, requestActivityConfig)
+              }
+
+              // Return success to Flutter
+              result.success("Last ticket displayed successfully")
+            }
+
+            override fun onError(errorResponse: ErrorResponse?) {
+              // Log error for debugging
+              Log.e("ZendeskSDK", "Error fetching requests: ${errorResponse?.reason}")
+
+              // ✅ Fallback to help center on error
+              HelpCenterActivity.builder()
+                .withArticlesForCategoryIds(categoryIdList)
+                .withContactUsButtonVisible(true)
+                .show(context, requestActivityConfig)
+
+              // Return error to Flutter
+              result.error("ZENDESK_ERROR", "Failed to fetch tickets: ${errorResponse?.reason}", null)
+            }
+          })
+
+
+          // ✅ Optional: Check for ticket updates (as mentioned in documentation)
+          requestProvider?.getUpdatesForDevice(object : ZendeskCallback<RequestUpdates>() {
+            override fun onSuccess(requestUpdates: RequestUpdates?) {
+              if (requestUpdates?.hasUpdatedRequests() == true) {
+                Log.d("ZendeskSDK", "User has ${requestUpdates.requestUpdates.size} updated tickets")
+                // You can use this information to show notifications or badges
+              }
+            }
+
+            override fun onError(errorResponse: ErrorResponse?) {
+              Log.e("ZendeskSDK", "Error checking for updates: ${errorResponse?.reason}")
+            }
+          })
+
         } catch (e: Exception) {
           result.error("LAUNCH_FAILED", e.localizedMessage, null)
         }
@@ -120,7 +175,6 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
 
         // ✅ Launch RequestActivity (Support SDK ticket form)
         val config = RequestActivity.builder()
-//          .withRequestSubject("Trip Support Request")
           .withTags(listOf("user_id:$userId", "trip_id:$tripId"))
           .intent(context)
 
@@ -128,27 +182,19 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
         result.success(null)
       }
 
+      // ✅ Optional: Add method to show all tickets if needed
+      "showAllTickets" -> {
+        try {
+          val context = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
 
-//      "startChatBot" -> {
-//        try {
-//          val ctx = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
-//
-//          // Initialize AnswerBot
-//          AnswerBot.INSTANCE.init(Zendesk.INSTANCE, Support.INSTANCE)
-//          val answerBotEngine = AnswerBotEngine.engine()
-////          val messagingConfig = MessagingConfiguration.builder().build()
-//
-//          // Show AnswerBot chat
-//          MessagingActivity.builder()
-//            .withEngines(answerBotEngine)
-////            .withConfigs(messagingConfig)
-//            .show(ctx)
-//
-//          result.success(null)
-//        } catch (e: Exception) {
-//          result.error("LAUNCH_FAILED", e.localizedMessage, null)
-//        }
-//      }
+          RequestListActivity.builder()
+            .show(context)
+
+          result.success("Ticket list displayed successfully")
+        } catch (e: Exception) {
+          result.error("LAUNCH_FAILED", e.localizedMessage, null)
+        }
+      }
 
       else -> result.notImplemented()
     }
