@@ -62,6 +62,7 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
 
         case "startChatBot":
             showAnswerBotFullscreen(result: result)
+                result(nil)
 
         default:
             result(FlutterMethodNotImplemented)
@@ -213,7 +214,7 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
             // Extract user info
             guard let args = call.arguments as? [String: Any],
                 let name = args["name"] as? String,
-                  let emailId = args["emailId"] as? String,
+                let emailId = args["emailId"] as? String,
                 let userId = args["userId"] as? String,
                 let categoryIdList = args["categoryIdList"] as? [NSNumber]
             else {
