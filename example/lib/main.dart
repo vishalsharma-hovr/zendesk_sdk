@@ -26,11 +26,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> initZendesk() async {
     try {
-      await _zendeskSdkPlugin.initialize(
-        url: 'https://ridehovr.zendesk.com',
-        appId: 'ab4e000b41478e3acde9d01b5069bf6d168236d6b948886e',
-        clientId: 'mobile_sdk_client_5134bbfe3fb5a795422b',
-      );
+      await _zendeskSdkPlugin.initialize(url: 'Your URL', appId: 'Your App Id', clientId: 'Your Client Id');
     } on PlatformException catch (e) {
       // Optional: show error toast/snack
       debugPrint('Zendesk init error: ${e.message}');
