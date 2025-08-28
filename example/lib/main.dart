@@ -50,7 +50,7 @@ class _MyAppState extends State<MyApp> {
                     userId: "UserId",
                     emailId: "Email Id",
                     /* Add the category id as per your dashboard*/
-                    categoryIdList: [1, 2, 3],
+                    categoryIdList: [],// Category Id's
                   );
                 } catch (e) {
                   debugPrint('Zendesk init error: $e');
