@@ -58,10 +58,21 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
         try {
           val name = call.argument<String>("name") ?: ""
           val userId = call.argument<String>("userId") ?: ""
+          val emailId  = call.argument<String>("emailId") ?: ""
           val categoryIdList = call.argument<List<Long>>("categoryIdList") ?: emptyList()
 
-          if (name.isEmpty() || userId.isEmpty()) {
-            result.error("INVALID_ARGUMENTS", "Missing name, userId,", null)
+          if (name.isEmpty()) {
+            result.error("INVALID_ARGUMENTS", "Missing name!", null)
+            return
+          }
+
+          if (userId.isEmpty()){
+            result.error("INVALID_ARGUMENTS", "Missing userId!", null)
+            return
+          }
+
+          if (emailId.isEmpty()){
+            result.error("INVALID_ARGUMENTS", "Missing emailId!", null)
             return
           }
 
@@ -73,6 +84,7 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
           // ✅ 1. Set Zendesk Identity (required before launching any screens)
           val identity = AnonymousIdentity.Builder()
             .withNameIdentifier(combinedName)
+            .withEmailIdentifier(emailId)
             .build()
           Zendesk.INSTANCE.setIdentity(identity)
 
@@ -155,9 +167,22 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
         val name = call.argument<String>("name") ?: ""
         val userId = call.argument<String>("userId") ?: ""
         val tripId = call.argument<String>("tripId") ?: ""
+        val emailId = call.argument<String>("emailId") ?:""
 
-        if (name.isEmpty() || userId.isEmpty() || tripId.isEmpty()) {
-          result.error("INVALID_ARGUMENTS", "Missing name, userId, or tripId", null)
+        if (name.isEmpty()) {
+          result.error("INVALID_ARGUMENTS", "Missing name!", null)
+          return
+        }
+        if (userId.isEmpty()) {
+          result.error("INVALID_ARGUMENTS", "Missing userId!", null)
+          return
+        }
+        if (tripId.isEmpty()) {
+          result.error("INVALID_ARGUMENTS", "Missing tripId!", null)
+          return
+        }
+        if (emailId.isEmpty()) {
+          result.error("INVALID_ARGUMENTS", "Missing emailId!", null)
           return
         }
 
@@ -169,7 +194,7 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
         // ✅ Set identity for Support SDK
         val identity = AnonymousIdentity.Builder()
           .withNameIdentifier(combinedName)
-          .withEmailIdentifier(userId)
+          .withEmailIdentifier(emailId)
           .build()
         Zendesk.INSTANCE.setIdentity(identity)
 
@@ -200,7 +225,7 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
     }
   }
 
-  override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
+  override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     channel.setMethodCallHandler(null)
   }
 
