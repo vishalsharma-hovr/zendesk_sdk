@@ -55,4 +55,9 @@ class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
   Future<void> startChatBot() async {
     await methodChannel.invokeMethod('startChatBot');
   }
+
+  @override
+  Future<void> showListOfTickets() async {
+    await methodChannel.invokeMethod('showListOfTickets');
+  }
 }

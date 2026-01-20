@@ -29,4 +29,8 @@ class ZendeskSdk {
   }) {
     return ZendeskSdkPlatform.instance.sendUserInformationForTicket(name: name, emailId: emailId, userId: userId, tripId: tripId);
   }
+
+  Future<void> showListOfTickets(){
+    return ZendeskSdkPlatform.instance.showListOfTickets();
+  }
 }

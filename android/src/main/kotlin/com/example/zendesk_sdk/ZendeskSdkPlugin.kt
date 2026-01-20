@@ -208,7 +208,7 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
       }
 
       // ✅ Optional: Add method to show all tickets if needed
-      "showAllTickets" -> {
+      "showListOfTickets" -> {
         try {
           val context = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
 
