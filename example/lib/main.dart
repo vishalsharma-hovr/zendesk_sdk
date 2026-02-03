@@ -28,8 +28,9 @@ class _MyAppState extends State<MyApp> {
     try {
       await _zendeskSdkPlugin.initialize(url: 'Your URL', appId: 'Your App Id', clientId: 'Your Client Id');
     } on PlatformException catch (e) {
-      // Optional: show error toast/snack
       debugPrint('Zendesk init error: ${e.message}');
+      rethrow;
+      // Optional: show error toast/snack
     }
   }
 
@@ -50,7 +51,7 @@ class _MyAppState extends State<MyApp> {
                     userId: "UserId",
                     emailId: "Email Id",
                     /* Add the category id as per your dashboard*/
-                    categoryIdList: [],// Category Id's
+                    categoryIdList: [], // Category Id's
                   );
                 } catch (e) {
                   debugPrint('Zendesk init error: $e');
@@ -85,12 +86,7 @@ class _MyAppState extends State<MyApp> {
             ElevatedButton(
               onPressed: () async {
                 try {
-                  await _zendeskSdkPlugin.sendUserInformationForTicket(
-                    name: "Testing User",
-                    emailId: "EmailId",
-                    tripId: "tripId",
-                    userId: "userId",
-                  );
+                  await _zendeskSdkPlugin.sendUserInformationForTicket(name: "Testing User", emailId: "EmailId", tripId: "tripId", userId: "userId");
                 } catch (e) {
                   debugPrint('Zendesk init error: ${e}');
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to open Help Center: $e')));

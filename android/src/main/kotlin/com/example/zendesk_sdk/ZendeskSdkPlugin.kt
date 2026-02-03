@@ -9,6 +9,7 @@ import com.zendesk.service.ZendeskCallback
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import io.flutter.plugin.common.FlutterException
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import zendesk.core.*
@@ -22,13 +23,13 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
   private var context: Context? = null
   private var activity: Activity? = null
 
-  override fun onAttachedToEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
+  override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     context = binding.applicationContext
     channel = MethodChannel(binding.binaryMessenger, "zendesk_sdk")
     channel.setMethodCallHandler(this)
   }
 
-  override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: MethodChannel.Result) {
+  override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
     when (call.method) {
       "initialize" -> {
         val url = call.argument<String>("zendeskUrl")
@@ -63,17 +64,17 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
 
           if (name.isEmpty()) {
             result.error("INVALID_ARGUMENTS", "Missing name!", null)
-            return
+            throw Exception("INVALID_ARGUMENTS | Missing name!")
           }
 
           if (userId.isEmpty()){
             result.error("INVALID_ARGUMENTS", "Missing userId!", null)
-            return
+            throw Exception("INVALID_ARGUMENTS | Missing userId!")
           }
 
           if (emailId.isEmpty()){
             result.error("INVALID_ARGUMENTS", "Missing emailId!", null)
-            return
+            throw Exception("INVALID_ARGUMENTS | Missing emailId!")
           }
 
           val context = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
@@ -171,19 +172,19 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
 
         if (name.isEmpty()) {
           result.error("INVALID_ARGUMENTS", "Missing name!", null)
-          return
+          throw Exception("INVALID_ARGUMENTS | Missing name!")
         }
         if (userId.isEmpty()) {
           result.error("INVALID_ARGUMENTS", "Missing userId!", null)
-          return
+          throw Exception("INVALID_ARGUMENTS | Missing userId!")
         }
         if (tripId.isEmpty()) {
           result.error("INVALID_ARGUMENTS", "Missing tripId!", null)
-          return
+          throw Exception("INVALID_ARGUMENTS | Missing tripId!")
         }
         if (emailId.isEmpty()) {
           result.error("INVALID_ARGUMENTS", "Missing emailId!", null)
-          return
+          throw Exception("INVALID_ARGUMENTS | Missing emailId!")
         }
 
         val context = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
@@ -218,6 +219,7 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
           result.success("Ticket list displayed successfully")
         } catch (e: Exception) {
           result.error("LAUNCH_FAILED", e.localizedMessage, null)
+          throw e
         }
       }
 
