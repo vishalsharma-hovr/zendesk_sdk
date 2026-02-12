@@ -1,5 +1,7 @@
 import AnswerBotProvidersSDK
 import AnswerBotSDK
+import ChatProvidersSDK
+import ChatSDK
 import Flutter
 import MessagingAPI
 import MessagingSDK
@@ -8,10 +10,11 @@ import SupportProvidersSDK
 import SupportSDK
 import UIKit
 import ZendeskCoreSDK
-import ChatSDK
-import ChatProvidersSDK
 
 public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
+    // ✅ GLOBAL USER ID (same as Android)
+    private var userId: String = ""
+
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(
             name: "zendesk_sdk",
@@ -25,9 +28,11 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
         switch call.method {
         case "initialize":
             guard let args = call.arguments as? [String: Any],
-                let zendeskUrl = args["zendeskUrl"] as? String,
-                let appId = args["appId"] as? String,
-                let clientId = args["clientId"] as? String
+                  let zendeskUrl = args["zendeskUrl"] as? String,
+                  let appId = args["appId"] as? String,
+                  let clientId = args["clientId"] as? String,
+                  let name = args["name"] as? String,
+                  let emailId = args["emailId"] as? String
             else {
                 result(
                     FlutterError(
@@ -37,7 +42,8 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
                     ))
                 return
             }
-
+            // ✅ STORE USER ID ONCE
+            userId = args["userId"] as? String ?? ""
             // Initialize Zendesk
             Zendesk.initialize(
                 appId: appId,
@@ -47,11 +53,11 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
 
             // Initialize Support SDK
             Support.initialize(withZendesk: Zendesk.instance)
-
+            let combinedName = "\(name) | UserID: \(userId)"
             // Set identity (anonymous for now)
-            let identity = Identity.createAnonymous()
+            let identity = Identity.createAnonymous(name: combinedName, email: emailId)
             Zendesk.instance?.setIdentity(identity)
-            Chat.initialize(accountKey: clientId,appId: appId)
+            Chat.initialize(accountKey: clientId, appId: appId)
 
             result(nil)
 
@@ -62,34 +68,37 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
         case "sendUserInformationForTicket":
             sendUserInfomationForTicketCenterFullscreen(result: result, call: call)
             result(nil)
-                
+
         case "startChatBot":
             showAnswerBotFullscreen(result: result)
-                result(nil)
-            case "showListOfTickets":
-                showListOfTicketsFullscreen()
-                result(nil)
-            case "startChat":
-                guard let args = call.arguments as? [String: Any],
-                      let name = args["name"] as? String,
-                      let emailId = args["emailId"] as? String,
-                      let phoneNumber = args["phoneNumber"] as? String
-                else {
-                    result(
-                        FlutterError(
-                            code: "INVALID_ARGUMENTS",
-                            message: "Missing required parameters",
-                            details: nil
-                        ))
-                    return
-                }
-                startChat(name: name, emailId: emailId, phoneNumber: phoneNumber)
-                result(nil)
+            result(nil)
+
+        case "showListOfTickets":
+            showListOfTicketsFullscreen()
+            result(nil)
+
+        case "startChat":
+            guard let args = call.arguments as? [String: Any],
+                  let name = args["name"] as? String,
+                  let emailId = args["emailId"] as? String,
+                  let phoneNumber = args["phoneNumber"] as? String
+            else {
+                result(
+                    FlutterError(
+                        code: "INVALID_ARGUMENTS",
+                        message: "Missing required parameters",
+                        details: nil
+                    ))
+                return
+            }
+            startChat(name: name, emailId: emailId, phoneNumber: phoneNumber)
+            result(nil)
+
         default:
             result(FlutterMethodNotImplemented)
         }
     }
-    
+
     func showListOfTicketsFullscreen() {
         DispatchQueue.main.async {
             let requestListController = RequestUi.buildRequestList()
@@ -106,41 +115,41 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
             }
         }
     }
-    
+
     func startChat(name: String, emailId: String, phoneNumber: String) {
         DispatchQueue.main.async {
             print("=============> Start chat")
-            
+
             // Chat configuration
             let chatConfig = ChatConfiguration()
             chatConfig.isAgentAvailabilityEnabled = false
-            
+
             // Visitor info
             let visitorInfo = VisitorInfo(
                 name: name,
                 email: emailId,
                 phoneNumber: phoneNumber
             )
-            
+
             // Providers config
             let chatProviderConfig = ChatAPIConfiguration()
             chatProviderConfig.visitorInfo = visitorInfo
-            
+
             Chat.instance?.configuration = chatProviderConfig
-            
+
             do {
                 // Messaging UI
                 let messagingConfiguration = MessagingConfiguration()
                 messagingConfiguration.name = "Chat Bot"
                 messagingConfiguration.isMultilineResponseOptionsEnabled = true
-                
+
                 let chatConfiguration = ChatConfiguration()
                 chatConfiguration.isPreChatFormEnabled = true
-                
+
                 // Build view controller
                 let chatEngine = try ChatEngine.engine()
                 let viewController = try Messaging.instance.buildUI(engines: [chatEngine], configs: [messagingConfiguration, chatConfiguration])
-                
+
                 // Present view controller
                 if let rootVC = self.getRootViewController() {
                     if let navController = rootVC as? UINavigationController {
@@ -184,10 +193,7 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
 
             // Extract user info
             guard let args = call.arguments as? [String: Any],
-                let name = args["name"] as? String,
-                let emailId = args["emailId"] as? String,
-                let userId = args["userId"] as? String,
-                let tripId = args["tripId"] as? String
+                  let tripId = args["tripId"] as? String
             else {
                 result(
                     FlutterError(
@@ -198,17 +204,9 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
                 )
                 return
             }
-
-            // Combine user info into a single display name
-            let combinedName = "\(name) | UserID: \(userId) | TripID: \(tripId)"
-
-            // Set identity
-            let identity = Identity.createAnonymous(name: combinedName, email: emailId)
-            Zendesk.instance?.setIdentity(identity)
-
             // ✅ Create Request UI (ticket submission)
             let requestConfig = RequestUiConfiguration()
-            requestConfig.tags = ["user_id:\(userId)", "trip_id:\(tripId)"]
+            requestConfig.tags = ["user_id:\(self.userId)", "trip_id:\(tripId)"]
             //       requestConfig.subject = "Trip Support Request"
 
             let requestVC = RequestUi.buildRequestUi(with: [requestConfig])
@@ -229,70 +227,6 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    //    private func sendUserInfomationForTicketCenterFullscreen(
-    //        result: @escaping FlutterResult,
-    //        call: FlutterMethodCall
-    //    ) {
-    //        DispatchQueue.main.async {
-    //            guard let rootVC = self.getRootViewController() else {
-    //                result(
-    //                    FlutterError(
-    //                        code: "NO_VIEW",
-    //                        message: "No root view controller found",
-    //                        details: nil
-    //                    )
-    //                )
-    //                return
-    //            }
-    //
-    //                // Extract user info
-    //            guard let args = call.arguments as? [String: Any],
-    //                  let name = args["name"] as? String,
-    //                  let userId = args["userId"] as? String,
-    //                  let tripId = args["tripId"] as? String else {
-    //                result(
-    //                    FlutterError(
-    //                        code: "INVALID_ARGUMENTS",
-    //                        message: "Missing required fields: name, userId, or tripId",
-    //                        details: nil
-    //                    )
-    //                )
-    //                return
-    //            }
-    //
-    //                // ✅ Combine user info into a single display name
-    //            let combinedName = "\(name) | UserID: \(userId) | TripID: \(tripId)"
-    //
-    //                // ✅ Set identity
-    //            let identity = Identity.createAnonymous(name: combinedName, email: userId)
-    //            Zendesk.instance?.setIdentity(identity)
-    //
-    //                // Configure Help Center
-    //            let helpCenterConfig = HelpCenterUiConfiguration()
-    //            helpCenterConfig.showContactOptions = true
-    //
-    //            let requestConfig = RequestUiConfiguration()
-    //
-    //            let helpCenterVC = HelpCenterUi.buildHelpCenterOverviewUi(
-    //                withConfigs: [helpCenterConfig, requestConfig]
-    //            )
-    //
-    //            let navController = UINavigationController(rootViewController: helpCenterVC)
-    //            navController.modalPresentationStyle = .fullScreen
-    //
-    //            let closeButton = UIBarButtonItem(
-    //                barButtonSystemItem: .done,
-    //                target: self,
-    //                action: #selector(self.dismissHelpCenter)
-    //            )
-    //            helpCenterVC.navigationItem.rightBarButtonItem = closeButton
-    //
-    //            rootVC.present(navController, animated: true) {
-    //                result(nil)
-    //            }
-    //        }
-    //    }
-
     private func showHelpCenterFullscreen(
         result: @escaping FlutterResult,
         call: FlutterMethodCall
@@ -310,10 +244,9 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
             }
             // Extract user info
             guard let args = call.arguments as? [String: Any],
-                let name = args["name"] as? String,
-                let emailId = args["emailId"] as? String,
-                let userId = args["userId"] as? String,
-                let categoryIdList = args["categoryIdList"] as? [NSNumber]
+                  let name = args["name"] as? String,
+                  let emailId = args["emailId"] as? String,
+                  let categoryIdList = args["categoryIdList"] as? [NSNumber]
             else {
                 result(
                     FlutterError(
@@ -324,15 +257,8 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
                 )
                 return
             }
-            // Combine user info into a single display name
-            let combinedName = "\(name) | UserID: \(userId)"
-
-            // Set identity
-            let identity = Identity.createAnonymous(name: combinedName, email: emailId)
-            Zendesk.instance?.setIdentity(identity)
-
             let requestConfig = RequestUiConfiguration()
-            requestConfig.tags = ["user_id:\(userId)"]
+            requestConfig.tags = ["user_id:\(self.userId)"]
 
             // Configure Help Center for fullscreen presentation
             let helpCenterConfig = HelpCenterUiConfiguration()
@@ -420,7 +346,7 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
     @objc private func dismissHelpCenter() {
         DispatchQueue.main.async {
             if let rootVC = self.getRootViewController(),
-                let presentedVC = rootVC.presentedViewController
+               let presentedVC = rootVC.presentedViewController
             {
                 presentedVC.dismiss(animated: true, completion: nil)
             }
@@ -431,7 +357,7 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
         // Updated method to get root view controller (keyWindow is deprecated)
         if #available(iOS 13.0, *) {
             guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                let window = windowScene.windows.first
+                  let window = windowScene.windows.first
             else {
                 return nil
             }
@@ -441,4 +367,3 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
         }
     }
 }
-

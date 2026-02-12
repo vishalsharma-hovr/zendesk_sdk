@@ -30,8 +30,9 @@ class _MyAppState extends State<MyApp> {
         url: 'https://hovr-12795.zendesk.com',
         appId: '5628e5164bde398de10c972ed52877194795ea18aca2ebad',
         clientId: 'mobile_sdk_client_0209e7e309ead3916918',
-        name: "Testing User",
-        emailId: "Email Id",
+        name: "John Doe",
+        emailId: "abc@mail.com",
+        userId: "abc123",
       );
     } on PlatformException catch (e) {
       debugPrint('Zendesk init error: ${e.message}');
@@ -80,7 +81,7 @@ class _MyAppState extends State<MyApp> {
           ElevatedButton(
             onPressed: () async {
               try {
-                await _zendeskSdkPlugin.showListOfTickets();
+                await _zendeskSdkPlugin.showListOfTickets(name: "Testing User", emailId: "EmailId", tripId: "tripId", userId: "userId");
               } catch (e) {
                 debugPrint('Zendesk show list of tickets error: ${e}');
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to open Help Center: $e')));

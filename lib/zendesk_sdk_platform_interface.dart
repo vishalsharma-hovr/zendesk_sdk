@@ -17,7 +17,7 @@ abstract class ZendeskSdkPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<void> initialize({required String url, required String appId, required String clientId, required String name, required String emailId}) {
+  Future<void> initialize({required String url, required String appId, required String clientId, required String name, required String emailId, required String userId}) {
     throw UnimplementedError('initialize() has not been implemented.');
   }
 
@@ -41,7 +41,7 @@ abstract class ZendeskSdkPlatform extends PlatformInterface {
     throw UnimplementedError('startBot() has not been implemented.');
   }
 
-  Future<void> showListOfTickets() {
+  Future<void> showListOfTickets({required String name, required String emailId, required String userId, required String tripId}) {
     throw UnimplementedError('showListOfTickets() has not been implemented.');
   }
 

@@ -7,8 +7,8 @@ class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
   final methodChannel = const MethodChannel('zendesk_sdk');
 
   @override
-  Future<void> initialize({required String url, required String appId, required String clientId, required String name, required String emailId}) async {
-    await methodChannel.invokeMethod('initialize', {'zendeskUrl': url, 'appId': appId, 'clientId': clientId, "name": name, "emailId": emailId});
+  Future<void> initialize({required String url, required String appId, required String clientId, required String name, required String emailId, required String userId}) async {
+    await methodChannel.invokeMethod('initialize', {'zendeskUrl': url, 'appId': appId, 'clientId': clientId, "name": name, "emailId": emailId, "userId": userId});
   }
 
   @override
@@ -37,8 +37,8 @@ class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
   }
 
   @override
-  Future<void> showListOfTickets() async {
-    await methodChannel.invokeMethod('showListOfTickets');
+  Future<void> showListOfTickets({required String name, required String emailId, required String userId, required String tripId}) async {
+    await methodChannel.invokeMethod('showListOfTickets', {"name": name, "emailId": emailId, "userId": userId, "tripId": tripId});
   }
 
   @override
