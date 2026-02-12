@@ -59,7 +59,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/zendesk_sdk/ios"
 
 SPEC CHECKSUMS:
-  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
   zendesk_sdk: 4b474b190dcbb5ac778433aa685f51e41ee7ccc9
   ZendeskAnswerBotProvidersSDK: 2f3d0e38acdbd4507862b4e4a7b28d3764072854

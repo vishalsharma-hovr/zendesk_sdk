@@ -8,6 +8,8 @@ import SupportProvidersSDK
 import SupportSDK
 import UIKit
 import ZendeskCoreSDK
+import ChatSDK
+import ChatProvidersSDK
 
 public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -49,6 +51,7 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
             // Set identity (anonymous for now)
             let identity = Identity.createAnonymous()
             Zendesk.instance?.setIdentity(identity)
+            Chat.initialize(accountKey: clientId,appId: appId)
 
             result(nil)
 
@@ -59,13 +62,107 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
         case "sendUserInformationForTicket":
             sendUserInfomationForTicketCenterFullscreen(result: result, call: call)
             result(nil)
-
+                
         case "startChatBot":
             showAnswerBotFullscreen(result: result)
                 result(nil)
-
+            case "showListOfTickets":
+                showListOfTicketsFullscreen()
+                result(nil)
+            case "startChat":
+                guard let args = call.arguments as? [String: Any],
+                      let name = args["name"] as? String,
+                      let emailId = args["emailId"] as? String,
+                      let phoneNumber = args["phoneNumber"] as? String
+                else {
+                    result(
+                        FlutterError(
+                            code: "INVALID_ARGUMENTS",
+                            message: "Missing required parameters",
+                            details: nil
+                        ))
+                    return
+                }
+                startChat(name: name, emailId: emailId, phoneNumber: phoneNumber)
+                result(nil)
         default:
             result(FlutterMethodNotImplemented)
+        }
+    }
+    
+    func showListOfTicketsFullscreen() {
+        DispatchQueue.main.async {
+            let requestListController = RequestUi.buildRequestList()
+            if let rootVC = self.getRootViewController() {
+                if let navController = rootVC as? UINavigationController {
+                    navController.pushViewController(requestListController, animated: true)
+                } else {
+                    let navController = UINavigationController(rootViewController: requestListController)
+                    navController.modalPresentationStyle = .fullScreen
+                    rootVC.present(navController, animated: true, completion: nil)
+                }
+            } else {
+                print("No root view controller found to show ticket list.")
+            }
+        }
+    }
+    
+    func startChat(name: String, emailId: String, phoneNumber: String) {
+        DispatchQueue.main.async {
+            print("=============> Start chat")
+            
+            // Chat configuration
+            let chatConfig = ChatConfiguration()
+            chatConfig.isAgentAvailabilityEnabled = false
+            
+            // Visitor info
+            let visitorInfo = VisitorInfo(
+                name: name,
+                email: emailId,
+                phoneNumber: phoneNumber
+            )
+            
+            // Providers config
+            let chatProviderConfig = ChatAPIConfiguration()
+            chatProviderConfig.visitorInfo = visitorInfo
+            
+            Chat.instance?.configuration = chatProviderConfig
+            
+            do {
+                // Messaging UI
+                let messagingConfiguration = MessagingConfiguration()
+                messagingConfiguration.name = "Chat Bot"
+                messagingConfiguration.isMultilineResponseOptionsEnabled = true
+                
+                let chatConfiguration = ChatConfiguration()
+                chatConfiguration.isPreChatFormEnabled = true
+                
+                // Build view controller
+                let chatEngine = try ChatEngine.engine()
+                let viewController = try Messaging.instance.buildUI(engines: [chatEngine], configs: [messagingConfiguration, chatConfiguration])
+                
+                // Present view controller
+                if let rootVC = self.getRootViewController() {
+                    if let navController = rootVC as? UINavigationController {
+                        navController.pushViewController(viewController, animated: true)
+                    } else {
+                        let navController = UINavigationController(rootViewController: viewController)
+                        navController.modalPresentationStyle = .fullScreen
+                        rootVC.present(navController, animated: true, completion: nil)
+                    }
+                }
+
+            } catch {
+                DispatchQueue.main.async {
+                    print("Failed to create chat engine: \(error)")
+                    // Optionally, present error to user
+                    if let rootVC = UIApplication.shared.keyWindow?.rootViewController {
+                        let alert = UIAlertController(title: "Chat Error", message: error.localizedDescription, preferredStyle: .alert)
+                        alert.addAction(UIAlertAction(title: "OK", style: .default))
+                        rootVC.present(alert, animated: true)
+                    }
+                }
+            }
         }
     }
 
@@ -344,3 +441,4 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
         }
     }
 }
+

@@ -7,23 +7,13 @@ class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
   final methodChannel = const MethodChannel('zendesk_sdk');
 
   @override
-  Future<void> initialize({required String url, required String appId, required String clientId}) async {
-    await methodChannel.invokeMethod('initialize', {'zendeskUrl': url, 'appId': appId, 'clientId': clientId});
+  Future<void> initialize({required String url, required String appId, required String clientId, required String name, required String emailId}) async {
+    await methodChannel.invokeMethod('initialize', {'zendeskUrl': url, 'appId': appId, 'clientId': clientId, "name": name, "emailId": emailId});
   }
 
   @override
-  Future<void> showHelpCenter({
-    required String name,
-    required String emailId,
-    required String userId,
-    required List<int> categoryIdList,
-  }) async {
-    await methodChannel.invokeMethod('showHelpCenter', {
-      "name": name,
-      "emailId": emailId,
-      "userId": userId,
-      "categoryIdList": categoryIdList,
-    });
+  Future<void> showHelpCenter({required String name, required String emailId, required String userId, required List<int> categoryIdList}) async {
+    await methodChannel.invokeMethod('showHelpCenter', {"name": name, "emailId": emailId, "userId": userId, "categoryIdList": categoryIdList});
   }
 
   @override
@@ -37,18 +27,8 @@ class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
   }
 
   @override
-  Future<void> sendUserInformationForTicket({
-    required String name,
-    required String emailId,
-    required String userId,
-    required String tripId,
-  }) async {
-    await methodChannel.invokeMethod("sendUserInformationForTicket", {
-      "name": name,
-      "emailId": emailId,
-      "userId": userId,
-      "tripId": tripId,
-    });
+  Future<void> sendUserInformationForTicket({required String name, required String emailId, required String userId, required String tripId}) async {
+    await methodChannel.invokeMethod("sendUserInformationForTicket", {"name": name, "emailId": emailId, "userId": userId, "tripId": tripId});
   }
 
   @override
@@ -59,5 +39,10 @@ class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
   @override
   Future<void> showListOfTickets() async {
     await methodChannel.invokeMethod('showListOfTickets');
+  }
+
+  @override
+  Future<void> startChat({required String name, required String emailId, required String phoneNumber}) async {
+    await methodChannel.invokeMethod('startChat', {"name": name, "emailId": emailId, "phoneNumber": phoneNumber});
   }
 }
