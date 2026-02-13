@@ -62,6 +62,7 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
                             .withNameIdentifier(combinedName)
                             .withEmailIdentifier(emailId)
                             .build()
+                        AnswerBot.INSTANCE.init(Zendesk.INSTANCE, Support.INSTANCE)
                         Zendesk.INSTANCE.setIdentity(identity)
                         Chat.INSTANCE.init(it, clientId, appId)
                         result.success(null)
@@ -125,6 +126,7 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
                             // AFTER tickets loaded, show UI
                             RequestListActivity.builder().show(context)
                         }
+
                         override fun onError(errorResponse: ErrorResponse?) {
                             Log.e("ZENDESK", errorResponse?.reason ?: "Unknown error")
                             // Still show UI even if fetch fails
@@ -154,9 +156,12 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
                     val chatProvideConfig = ChatProvidersConfiguration.builder()
                         .withVisitorInfo(visitor)
                         .build()
+                    val answerBotEngine = AnswerBotEngine.engine()
+                    val supportEngine = SupportEngine.engine()
+                    val chatEngine = ChatEngine.engine()
                     Chat.INSTANCE.setChatProvidersConfiguration(chatProvideConfig)
                     MessagingActivity.builder()
-                        .withEngines(ChatEngine.engine())
+                        .withEngines(answerBotEngine, chatEngine, supportEngine)
                         .withMultilineResponseOptionsEnabled(true)
                         .show(context, chatConfiguration)
                 } catch (e: Exception) {
@@ -164,6 +169,21 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
                     throw e
                 }
             }
+
+//            "startChat" -> {
+//                try {
+//                    val context = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
+//                    val answerBotEngine = AnswerBotEngine.engine()
+//                    val supportEngine = SupportEngine.engine()
+//                    val chatEngine = ChatEngine.engine()
+//
+//                    MessagingActivity.builder()
+//                        .withEngines(answerBotEngine, chatEngine, supportEngine)
+//                        .show(context)
+//                } catch (e: Exception) {
+//                    result.error("AUTO_BOT_CHAT", e.localizedMessage, null)
+//                }
+//            }
 
             else -> result.notImplemented()
         }

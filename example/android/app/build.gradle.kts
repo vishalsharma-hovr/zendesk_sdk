@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "com.example.zendesk_sdk_example"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "29.0.13846066 rc3"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

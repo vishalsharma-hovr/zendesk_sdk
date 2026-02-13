@@ -57,8 +57,9 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
             // Set identity (anonymous for now)
             let identity = Identity.createAnonymous(name: combinedName, email: emailId)
             Zendesk.instance?.setIdentity(identity)
+                
             Chat.initialize(accountKey: clientId, appId: appId)
-
+            AnswerBot.initialize(withZendesk: Zendesk.instance, support: Support.instance!)
             result(nil)
 
         case "showHelpCenter":
@@ -115,7 +116,14 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
             }
         }
     }
-
+    @objc private func closeZendeskScreen() {
+        DispatchQueue.main.async {
+            if let rootVC = self.getRootViewController(),
+               let presented = rootVC.presentedViewController {
+                presented.dismiss(animated: true, completion: nil)
+            }
+        }
+    }
     func startChat(name: String, emailId: String, phoneNumber: String) {
         DispatchQueue.main.async {
             print("=============> Start chat")
@@ -148,10 +156,21 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
 
                 // Build view controller
                 let chatEngine = try ChatEngine.engine()
-                let viewController = try Messaging.instance.buildUI(engines: [chatEngine], configs: [messagingConfiguration, chatConfiguration])
+                let answerBotEngine = try AnswerBotEngine.engine()
+                let supportEngine = try SupportEngine.engine()
+                let viewController = try Messaging.instance.buildUI(engines: [answerBotEngine,chatEngine,supportEngine], configs: [messagingConfiguration, chatConfiguration])
 
                 // Present view controller
                 if let rootVC = self.getRootViewController() {
+                    
+                    let closeButton = UIBarButtonItem(
+                        barButtonSystemItem: .close,
+                        target: self,
+                        action: #selector(self.closeZendeskScreen)
+                    )
+                    
+                    viewController.navigationItem.leftBarButtonItem = closeButton
+                    
                     if let navController = rootVC as? UINavigationController {
                         navController.pushViewController(viewController, animated: true)
                     } else {
