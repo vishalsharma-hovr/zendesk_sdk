@@ -1,12 +1,19 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zendesk_sdk/zendesk_sdk.dart';
-import 'package:zendesk_sdk/zendesk_sdk_platform_interface.dart';
-import 'package:zendesk_sdk/zendesk_sdk_method_channel.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:zendesk_sdk/zendesk_sdk.dart';
+import 'package:zendesk_sdk/zendesk_sdk_method_channel.dart';
+import 'package:zendesk_sdk/zendesk_sdk_platform_interface.dart';
 
 class MockZendeskSdkPlatform with MockPlatformInterfaceMixin implements ZendeskSdkPlatform {
   @override
-  Future<void> initialize({required String url, required String appId, required String clientId}) async {
+  Future<void> initialize({
+    required String url,
+    required String appId,
+    required String clientId,
+    required String emailId,
+    required String name,
+    required String userId,
+  }) async {
     // Mock behavior, e.g., log or assert inputs if desired
   }
 
@@ -44,6 +51,18 @@ class MockZendeskSdkPlatform with MockPlatformInterfaceMixin implements ZendeskS
   }) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> showListOfTickets({required String name, required String emailId, required String userId, required String tripId}) {
+    // TODO: implement showListOfTickets
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> startChat({required String channelId}) {
+    // TODO: implement startChat
+    throw UnimplementedError();
+  }
 }
 
 void main() {
@@ -57,7 +76,14 @@ void main() {
     ZendeskSdk zendesk = ZendeskSdk();
     ZendeskSdkPlatform.instance = MockZendeskSdkPlatform();
 
-    await zendesk.initialize(url: 'https://example.zendesk.com', appId: 'fakeAppId', clientId: 'fakeClientId');
+    await zendesk.initialize(
+      url: 'https://example.zendesk.com',
+      appId: 'fakeAppId',
+      clientId: 'fakeClientId',
+      emailId: "name@email.com",
+      name: "name",
+      userId: "userID",
+    );
 
     await zendesk.showHelpCenter(name: "Name", emailId: "EmailId", userId: "UserId", categoryIdList: [1, 2, 3]);
 

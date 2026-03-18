@@ -1,7 +1,14 @@
 import 'zendesk_sdk_platform_interface.dart';
 
 class ZendeskSdk {
-  Future<void> initialize({required String url, required String appId, required String clientId, required String name, required String emailId, required String userId}) {
+  Future<void> initialize({
+    required String url,
+    required String appId,
+    required String clientId,
+    required String name,
+    required String emailId,
+    required String userId,
+  }) {
     return ZendeskSdkPlatform.instance.initialize(url: url, appId: appId, clientId: clientId, name: name, emailId: emailId, userId: userId);
   }
 
@@ -21,7 +28,12 @@ class ZendeskSdk {
     return ZendeskSdkPlatform.instance.showHelpCenterCategoryId(categoryId: categoryId);
   }
 
-  Future<void> sendUserInformationForTicket({required String name, required String emailId, required String userId, required String tripId}) {
+  Future<void> sendUserInformationForTicket({
+    required String name,
+    required String emailId,
+    required String userId,
+    required String tripId,
+  }) {
     return ZendeskSdkPlatform.instance.sendUserInformationForTicket(name: name, emailId: emailId, userId: userId, tripId: tripId);
   }
 
@@ -29,7 +41,7 @@ class ZendeskSdk {
     return ZendeskSdkPlatform.instance.showListOfTickets(name: name, emailId: emailId, userId: userId, tripId: tripId);
   }
 
-  Future<void> startChat({required String name, required String emailId, required String phoneNumber}) {
-    return ZendeskSdkPlatform.instance.startChat(name: name, emailId: emailId, phoneNumber: phoneNumber);
+  Future<void> startChat({required String channelId}) {
+    return ZendeskSdkPlatform.instance.startChat(channelId: channelId);
   }
 }

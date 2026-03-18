@@ -10,6 +10,8 @@ import SupportProvidersSDK
 import SupportSDK
 import UIKit
 import ZendeskCoreSDK
+import ZendeskSDKMessaging
+import ZendeskSDK
 
 public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
     // ✅ GLOBAL USER ID (same as Android)
@@ -80,9 +82,7 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
 
         case "startChat":
             guard let args = call.arguments as? [String: Any],
-                  let name = args["name"] as? String,
-                  let emailId = args["emailId"] as? String,
-                  let phoneNumber = args["phoneNumber"] as? String
+                  let channelId = args["channelId"] as? String
             else {
                 result(
                     FlutterError(
@@ -92,7 +92,7 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
                     ))
                 return
             }
-            startChat(name: name, emailId: emailId, phoneNumber: phoneNumber)
+                startChat(channelId: channelId)
             result(nil)
 
         default:
@@ -124,76 +124,172 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
             }
         }
     }
-    func startChat(name: String, emailId: String, phoneNumber: String) {
-        DispatchQueue.main.async {
-            print("=============> Start chat")
+//    func startChat(channelId: String) {
+//        DispatchQueue.main.async {
+//            print("=============> Start chat")
+//            do {
+//                Zendesk.initialize(withChannelKey: channelId,
+//                    messagingFactory: DefaultMessagingFactory()) { result in
+//                    if case .success(_) = result {
+//                        if let viewController = Zendesk.instance?.messaging?.messagingViewController(),
+//                           let rootVC = self.getRootViewController() {
+//                            if let navController = rootVC as? UINavigationController {
+//                                navController.pushViewController(viewController, animated: true)
+//                            } else {
+//                                let navController = UINavigationController(rootViewController: viewController)
+//                                navController.modalPresentationStyle = .fullScreen
+//                                rootVC.present(navController, animated: true, completion: nil)
+//                            }
+//                        }
+//                    }
+//                    if case let .failure(error) = result {
+//                        print("Messaging did not initialize. Error: \(error.localizedDescription)")
+//                    }
+//                }
+//            }
+//            catch {
+//                DispatchQueue.main.async {
+//                    print("Failed to create chat engine: \(error)")
+//                    // Optionally, present error to user
+//                    if let rootVC = UIApplication.shared.keyWindow?.rootViewController {
+//                        let alert = UIAlertController(title: "Chat Error", message: error.localizedDescription, preferredStyle: .alert)
+//                        alert.addAction(UIAlertAction(title: "OK", style: .default))
+//                        rootVC.present(alert, animated: true)
+//                    }
+//                }
+//            }
+////            // Chat configuration
+////            let chatConfig = ChatConfiguration()
+////            chatConfig.isAgentAvailabilityEnabled = false
+////
+////            // Visitor info
+////            let visitorInfo = VisitorInfo(
+////                name: name,
+////                email: emailId,
+////                phoneNumber: phoneNumber
+////            )
+////
+////            // Providers config
+////            let chatProviderConfig = ChatAPIConfiguration()
+////            chatProviderConfig.visitorInfo = visitorInfo
+////
+////            Chat.instance?.configuration = chatProviderConfig
+////
+////            do {
+////                // Messaging UI
+////                let messagingConfiguration = MessagingConfiguration()
+////                messagingConfiguration.name = "Chat Bot"
+////                messagingConfiguration.isMultilineResponseOptionsEnabled = true
+////
+////                let chatConfiguration = ChatConfiguration()
+////                chatConfiguration.isPreChatFormEnabled = true
+////
+////                // Build view controller
+////                let chatEngine = try ChatEngine.engine()
+////                let answerBotEngine = try AnswerBotEngine.engine()
+////                let supportEngine = try SupportEngine.engine()
+////                let viewController = try Messaging.instance.buildUI(engines: [answerBotEngine,chatEngine,supportEngine], configs: [messagingConfiguration, chatConfiguration])
+////
+////                // Present view controller
+////                if let rootVC = self.getRootViewController() {
+////
+////                    let closeButton = UIBarButtonItem(
+////                        barButtonSystemItem: .close,
+////                        target: self,
+////                        action: #selector(self.closeZendeskScreen)
+////                    )
+////
+////                    viewController.navigationItem.leftBarButtonItem = closeButton
+////
+////                    if let navController = rootVC as? UINavigationController {
+////                        navController.pushViewController(viewController, animated: true)
+////                    } else {
+////                        let navController = UINavigationController(rootViewController: viewController)
+////                        navController.modalPresentationStyle = .fullScreen
+////                        rootVC.present(navController, animated: true, completion: nil)
+////                    }
+////                }
+////
+////            } catch {
+////                DispatchQueue.main.async {
+////                    print("Failed to create chat engine: \(error)")
+////                    // Optionally, present error to user
+////                    if let rootVC = UIApplication.shared.keyWindow?.rootViewController {
+////                        let alert = UIAlertController(title: "Chat Error", message: error.localizedDescription, preferredStyle: .alert)
+////                        alert.addAction(UIAlertAction(title: "OK", style: .default))
+////                        rootVC.present(alert, animated: true)
+////                    }
+////                }
+////            }
+//        }
+//    }
 
-            // Chat configuration
-            let chatConfig = ChatConfiguration()
-            chatConfig.isAgentAvailabilityEnabled = false
-
-            // Visitor info
-            let visitorInfo = VisitorInfo(
-                name: name,
-                email: emailId,
-                phoneNumber: phoneNumber
-            )
-
-            // Providers config
-            let chatProviderConfig = ChatAPIConfiguration()
-            chatProviderConfig.visitorInfo = visitorInfo
-
-            Chat.instance?.configuration = chatProviderConfig
-
-            do {
-                // Messaging UI
-                let messagingConfiguration = MessagingConfiguration()
-                messagingConfiguration.name = "Chat Bot"
-                messagingConfiguration.isMultilineResponseOptionsEnabled = true
-
-                let chatConfiguration = ChatConfiguration()
-                chatConfiguration.isPreChatFormEnabled = true
-
-                // Build view controller
-                let chatEngine = try ChatEngine.engine()
-                let answerBotEngine = try AnswerBotEngine.engine()
-                let supportEngine = try SupportEngine.engine()
-                let viewController = try Messaging.instance.buildUI(engines: [answerBotEngine,chatEngine,supportEngine], configs: [messagingConfiguration, chatConfiguration])
-
-                // Present view controller
-                if let rootVC = self.getRootViewController() {
-                    
-                    let closeButton = UIBarButtonItem(
-                        barButtonSystemItem: .close,
-                        target: self,
-                        action: #selector(self.closeZendeskScreen)
-                    )
-                    
-                    viewController.navigationItem.leftBarButtonItem = closeButton
-                    
-                    if let navController = rootVC as? UINavigationController {
-                        navController.pushViewController(viewController, animated: true)
-                    } else {
-                        let navController = UINavigationController(rootViewController: viewController)
-                        navController.modalPresentationStyle = .fullScreen
-                        rootVC.present(navController, animated: true, completion: nil)
+    func startChat(channelId: String) {
+        print("=============> Start chat")
+        Zendesk.initialize(
+            withChannelKey: channelId,
+            messagingFactory: DefaultMessagingFactory()
+        ) { result in
+            
+            switch result {
+                case .success(_):
+                    DispatchQueue.main.async {
+                        guard
+                            let viewController = Zendesk.instance?.messaging?.messagingViewController(),
+                            let rootVC = self.getRootViewController()
+                        else {
+                            print("Failed to get Zendesk viewController or rootVC")
+                            return
+                        }
+                        
+                            // Add close button
+                        viewController.navigationItem.leftBarButtonItem = UIBarButtonItem(
+                            barButtonSystemItem: .close,
+                            target: self,
+                            action: #selector(self.closeZendeskScreen)
+                        )
+                        
+                        if let nav = rootVC as? UINavigationController {
+                            nav.pushViewController(viewController, animated: true)
+                        } else if let nav = rootVC.navigationController {
+                            nav.pushViewController(viewController, animated: true)
+                        } else {
+                            let nav = UINavigationController(rootViewController: viewController)
+                            nav.modalPresentationStyle = .fullScreen
+                            rootVC.present(nav, animated: true)
+                        }
                     }
-                }
-
-            } catch {
-                DispatchQueue.main.async {
-                    print("Failed to create chat engine: \(error)")
-                    // Optionally, present error to user
-                    if let rootVC = UIApplication.shared.keyWindow?.rootViewController {
-                        let alert = UIAlertController(title: "Chat Error", message: error.localizedDescription, preferredStyle: .alert)
-                        alert.addAction(UIAlertAction(title: "OK", style: .default))
-                        rootVC.present(alert, animated: true)
+                    
+                case .failure(let error):
+                    DispatchQueue.main.async {
+                        print("Zendesk init failed: \(error.localizedDescription)")
+                        self.showErrorAlert(message: error.localizedDescription)
                     }
-                }
             }
         }
     }
-
+    
+//    func getRootViewController() -> UIViewController? {
+//        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+//              let window = scene.windows.first(where: { $0.isKeyWindow }) else {
+//            return nil
+//        }
+//        return window.rootViewController
+//    }
+    
+    func showErrorAlert(message: String) {
+        guard let rootVC = getRootViewController() else { return }
+        
+        let alert = UIAlertController(
+            title: "Zendesk Error",
+            message: message,
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        rootVC.present(alert, animated: true)
+    }
+    
     private func sendUserInfomationForTicketCenterFullscreen(
         result: @escaping FlutterResult,
         call: FlutterMethodCall
@@ -386,3 +482,4 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
         }
     }
 }
+

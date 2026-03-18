@@ -11,20 +11,14 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import zendesk.answerbot.AnswerBot
-import zendesk.answerbot.AnswerBotEngine
 import zendesk.chat.Chat
-import zendesk.chat.ChatConfiguration
-import zendesk.chat.ChatEngine
-import zendesk.chat.ChatProvidersConfiguration
-import zendesk.chat.VisitorInfo
-import zendesk.classic.messaging.Engine
-import zendesk.classic.messaging.MessagingActivity
-import zendesk.configurations.Configuration
 import zendesk.core.*
+import zendesk.messaging.android.DefaultMessagingFactory
 import zendesk.support.*
 import zendesk.support.guide.HelpCenterActivity
 import zendesk.support.request.RequestActivity
 import zendesk.support.requestlist.RequestListActivity
+import zendesk.android.Zendesk as zendeskV3
 
 
 class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware {
@@ -140,50 +134,29 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
             }
 
             "startChat" -> {
-                val name = call.argument<String>("name") ?: ""
-                val emailId = call.argument<String>("emailId") ?: ""
-                val phoneNumber = call.argument<String>("phoneNumber") ?: ""
+                val channelId = call.argument<String>("channelId") ?: ""
                 try {
                     val context = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
-                    val chatConfiguration = ChatConfiguration.builder()
-                        .withAgentAvailabilityEnabled(false)
-                        .build()
-                    val visitor = VisitorInfo.builder()
-                        .withName(name)
-                        .withEmail(emailId)
-                        .withPhoneNumber(phoneNumber) // numeric string
-                        .build()
-                    val chatProvideConfig = ChatProvidersConfiguration.builder()
-                        .withVisitorInfo(visitor)
-                        .build()
-                    val answerBotEngine = AnswerBotEngine.engine()
-                    val supportEngine = SupportEngine.engine()
-                    val chatEngine = ChatEngine.engine()
-                    Chat.INSTANCE.setChatProvidersConfiguration(chatProvideConfig)
-                    MessagingActivity.builder()
-                        .withEngines(answerBotEngine, chatEngine, supportEngine)
-                        .withMultilineResponseOptionsEnabled(true)
-                        .show(context, chatConfiguration)
+                    zendeskV3.initialize(
+                        context = context,
+                        channelKey = channelId,
+                        successCallback = { zendesk ->
+                            println("==============>>>>>")
+                            println(zendesk.messaging.showMessaging(context))
+                            println("==============>>>>>")
+                            zendesk.messaging.showMessaging(context)
+                        },
+                        failureCallback = { error ->
+                            // Handle failure case
+                            result.error("AUTO_BOT_CHAT", error.localizedMessage, null)
+                        },
+                        messagingFactory = DefaultMessagingFactory()
+                    )
                 } catch (e: Exception) {
                     result.error("CHAT_ENGINE_FAILED", e.localizedMessage, null)
                     throw e
                 }
             }
-
-//            "startChat" -> {
-//                try {
-//                    val context = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
-//                    val answerBotEngine = AnswerBotEngine.engine()
-//                    val supportEngine = SupportEngine.engine()
-//                    val chatEngine = ChatEngine.engine()
-//
-//                    MessagingActivity.builder()
-//                        .withEngines(answerBotEngine, chatEngine, supportEngine)
-//                        .show(context)
-//                } catch (e: Exception) {
-//                    result.error("AUTO_BOT_CHAT", e.localizedMessage, null)
-//                }
-//            }
 
             else -> result.notImplemented()
         }

@@ -17,6 +17,7 @@ Pod::Spec.new do |s|
   s.dependency 'ZendeskChatSDK'
   s.dependency 'ZendeskSupportSDK'
   s.dependency 'ZendeskAnswerBotSDK'
+  s.dependency 'ZendeskSDKMessaging'
   s.platform = :ios, '12.0'
   s.ios.deployment_target = '12.0'
 
