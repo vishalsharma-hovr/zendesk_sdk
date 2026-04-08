@@ -15,30 +15,14 @@ class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
     required String name,
     required String emailId,
     required String userId,
+    required String userType,
   }) async {
-    await methodChannel.invokeMethod('initialize', {
-      'zendeskUrl': url,
-      'appId': appId,
-      'clientId': clientId,
-      "name": name,
-      "emailId": emailId,
-      "userId": userId,
-    });
+    await methodChannel.invokeMethod('initialize', {'zendeskUrl': url, 'appId': appId, 'clientId': clientId, "name": name, "emailId": emailId, "userId": userId, "userType": userType});
   }
 
   @override
-  Future<void> showHelpCenter({
-    required String name,
-    required String emailId,
-    required String userId,
-    required List<int> categoryIdList,
-  }) async {
-    await methodChannel.invokeMethod('showHelpCenter', {
-      "name": name,
-      "emailId": emailId,
-      "userId": userId,
-      "categoryIdList": categoryIdList,
-    });
+  Future<void> showHelpCenter({required String name, required String emailId, required String userId, required List<int> categoryIdList}) async {
+    await methodChannel.invokeMethod('showHelpCenter', {"name": name, "emailId": emailId, "userId": userId, "categoryIdList": categoryIdList});
   }
 
   @override
@@ -52,18 +36,8 @@ class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
   }
 
   @override
-  Future<void> sendUserInformationForTicket({
-    required String name,
-    required String emailId,
-    required String userId,
-    required String tripId,
-  }) async {
-    await methodChannel.invokeMethod("sendUserInformationForTicket", {
-      "name": name,
-      "emailId": emailId,
-      "userId": userId,
-      "tripId": tripId,
-    });
+  Future<void> sendUserInformationForTicket({required String name, required String emailId, required String userId, required String tripId}) async {
+    await methodChannel.invokeMethod("sendUserInformationForTicket", {"name": name, "emailId": emailId, "userId": userId, "tripId": tripId});
   }
 
   @override

@@ -16,14 +16,7 @@ void main() {
   final ZendeskSdk plugin = ZendeskSdk();
 
   testWidgets('initialize does not throw', (WidgetTester tester) async {
-    await plugin.initialize(
-      url: 'https://example.zendesk.com',
-      appId: 'your_app_id',
-      clientId: 'your_client_id',
-      emailId: "name@email.com",
-      name: "name",
-      userId: "userID",
-    );
+    await plugin.initialize(url: 'https://example.zendesk.com', appId: 'your_app_id', clientId: 'your_client_id', emailId: "name@email.com", name: "name", userId: "userID", userType: "userType");
     expect(true, isTrue); // no exceptions = success
   });
 

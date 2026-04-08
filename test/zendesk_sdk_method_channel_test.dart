@@ -32,14 +32,7 @@ void main() {
   });
 
   test('initialize sends correct parameters', () async {
-    await platform.initialize(
-      url: 'https://example.zendesk.com',
-      appId: 'testAppId',
-      clientId: 'testClientId',
-      emailId: "name@email.com",
-      name: "name",
-      userId: "userID",
-    );
+    await platform.initialize(url: 'https://example.zendesk.com', appId: 'testAppId', clientId: 'testClientId', emailId: "name@email.com", name: "name", userId: "userID", userType: "userType");
 
     expect(log.single.method, 'initialize');
     expect(log.single.arguments, {'url': 'https://example.zendesk.com', 'appId': 'testAppId', 'clientId': 'testClientId'});

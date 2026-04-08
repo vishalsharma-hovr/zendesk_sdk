@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:zendesk_sdk/zendesk_sdk.dart';
 
+const TAG = "ZENDESK_SDK_FLUTTER";
 void main() {
   runApp(MaterialApp(home: const MyApp()));
 }
@@ -27,18 +28,11 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> initZendesk() async {
     try {
-      await _zendeskSdkPlugin.initialize(
-        url: 'https://hovr-12795.zendesk.com',
-        appId: '5628e5164bde398de10c972ed52877194795ea18aca2ebad',
-        clientId: 'mobile_sdk_client_0209e7e309ead3916918',
-        name: "John Doe",
-        emailId: "abc@mail.com",
-        userId: "abc123",
-      );
-    } on PlatformException catch (e) {
-      debugPrint('Zendesk init error: ${e.message}');
+      await _zendeskSdkPlugin.initialize(url: 'zendesk_url', appId: 'app_id', clientId: 'client_id', name: "John Doe", emailId: "abc@mail.com", userId: "abc123", userType: "userType");
+    } on PlatformException catch (error, stacktrace) {
+      debugPrint('Zendesk init error: ${error.message}');
+      log(name: TAG, "Error Initializing the zendesk SDK :", error: error, stackTrace: stacktrace);
       rethrow;
-      // Optional: show error toast/snack
     }
   }
 
@@ -71,15 +65,10 @@ class _MyAppState extends State<MyApp> {
           ElevatedButton(
             onPressed: () async {
               try {
-                await _zendeskSdkPlugin.sendUserInformationForTicket(
-                  name: "Testing User",
-                  emailId: "EmailId",
-                  tripId: "tripId",
-                  userId: "userId",
-                );
-              } catch (e) {
-                debugPrint('Zendesk init error: ${e}');
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to open Help Center: $e')));
+                await _zendeskSdkPlugin.sendUserInformationForTicket(name: "Testing User", emailId: "EmailId", tripId: "tripId", userId: "userId");
+              } catch (error, stacktrace) {
+                log(name: TAG, "Error Sending User Information in zendesk SDK :", error: error, stackTrace: stacktrace);
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to open Help Center: $error')));
               }
             },
             child: const Text("Send User Information"),
@@ -88,9 +77,9 @@ class _MyAppState extends State<MyApp> {
             onPressed: () async {
               try {
                 await _zendeskSdkPlugin.showListOfTickets(name: "Testing User", emailId: "EmailId", tripId: "tripId", userId: "userId");
-              } catch (e) {
-                debugPrint('Zendesk show list of tickets error: ${e}');
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to open Help Center: $e')));
+              } catch (error, stacktrace) {
+                log(name: TAG, "Error Showing the list of tickets in zendesk SDK :", error: error, stackTrace: stacktrace);
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to open Help Center: $error')));
               }
             },
             child: Text("Show list of Tickets"),
@@ -100,7 +89,7 @@ class _MyAppState extends State<MyApp> {
               try {
                 await _zendeskSdkPlugin.startChat(channelId: "<your_channel_key>");
               } catch (error, stacktrace) {
-                log(name: "ZENDESK_SDK", "Zendesk start chat error", stackTrace: stacktrace, error: error);
+                log(name: TAG, "Error starting chat in zendesk SDK :", error: error, stackTrace: stacktrace);
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to open Help Center: $error')));
               }
             },

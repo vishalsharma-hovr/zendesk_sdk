@@ -16,14 +16,7 @@ abstract class ZendeskSdkPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<void> initialize({
-    required String url,
-    required String appId,
-    required String clientId,
-    required String name,
-    required String emailId,
-    required String userId,
-  }) {
+  Future<void> initialize({required String url, required String appId, required String clientId, required String name, required String emailId, required String userId, required String userType}) {
     throw UnimplementedError('initialize() has not been implemented.');
   }
 
@@ -39,12 +32,7 @@ abstract class ZendeskSdkPlatform extends PlatformInterface {
     throw UnimplementedError('showHelpCenterWithCategoryId() has not been implemented.');
   }
 
-  Future<void> sendUserInformationForTicket({
-    required String name,
-    required String emailId,
-    required String userId,
-    required String tripId,
-  }) {
+  Future<void> sendUserInformationForTicket({required String name, required String emailId, required String userId, required String tripId}) {
     throw UnimplementedError('sendUserInformationForTicket() has not been implemented');
   }
 

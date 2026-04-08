@@ -13,17 +13,13 @@ class MockZendeskSdkPlatform with MockPlatformInterfaceMixin implements ZendeskS
     required String emailId,
     required String name,
     required String userId,
+    required String userType,
   }) async {
     // Mock behavior, e.g., log or assert inputs if desired
   }
 
   @override
-  Future<void> showHelpCenter({
-    required String name,
-    required String emailId,
-    required String userId,
-    required List<int> categoryIdList,
-  }) async {
+  Future<void> showHelpCenter({required String name, required String emailId, required String userId, required List<int> categoryIdList}) async {
     // Mock behavior
   }
 
@@ -43,12 +39,7 @@ class MockZendeskSdkPlatform with MockPlatformInterfaceMixin implements ZendeskS
   }
 
   @override
-  Future<void> sendUserInformationForTicket({
-    required String name,
-    required String emailId,
-    required String userId,
-    required String tripId,
-  }) {
+  Future<void> sendUserInformationForTicket({required String name, required String emailId, required String userId, required String tripId}) {
     throw UnimplementedError();
   }
 
@@ -76,14 +67,7 @@ void main() {
     ZendeskSdk zendesk = ZendeskSdk();
     ZendeskSdkPlatform.instance = MockZendeskSdkPlatform();
 
-    await zendesk.initialize(
-      url: 'https://example.zendesk.com',
-      appId: 'fakeAppId',
-      clientId: 'fakeClientId',
-      emailId: "name@email.com",
-      name: "name",
-      userId: "userID",
-    );
+    await zendesk.initialize(url: 'https://example.zendesk.com', appId: 'fakeAppId', clientId: 'fakeClientId', emailId: "name@email.com", name: "name", userId: "userID", userType: "userType");
 
     await zendesk.showHelpCenter(name: "Name", emailId: "EmailId", userId: "UserId", categoryIdList: [1, 2, 3]);
 

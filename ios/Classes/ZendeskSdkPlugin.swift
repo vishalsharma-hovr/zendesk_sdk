@@ -16,6 +16,7 @@ import ZendeskSDK
 public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
     // ✅ GLOBAL USER ID (same as Android)
     private var userId: String = ""
+    private var userType: String = ""
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(
@@ -46,6 +47,7 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
             }
             // ✅ STORE USER ID ONCE
             userId = args["userId"] as? String ?? ""
+            userType = args["userType"] as? String ?? ""
             // Initialize Zendesk
             Zendesk.initialize(
                 appId: appId,
@@ -322,6 +324,13 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
             // ✅ Create Request UI (ticket submission)
             let requestConfig = RequestUiConfiguration()
             requestConfig.tags = ["user_id:\(self.userId)", "trip_id:\(tripId)"]
+            if(self.userType == "RIDER")
+            {
+            requestConfig.customFields = [CustomField(fieldId: 29516552016157,value: "RIDER")]
+            }
+            if(self.userType == "DRIVER"){
+                requestConfig.customFields = [CustomField(fieldId: 29516536736157,value: "DRIVER")]
+            }
             //       requestConfig.subject = "Trip Support Request"
 
             let requestVC = RequestUi.buildRequestUi(with: [requestConfig])

@@ -26,6 +26,8 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
     private var context: Context? = null
     private var activity: Activity? = null
     private var userId: String = ""
+    private var userType: String = ""
+    private var customFieldId: String = ""
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         context = binding.applicationContext
@@ -41,6 +43,7 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
                 val clientId = call.argument<String>("clientId")
                 val name = call.argument<String>("name") ?: ""
                 val emailId = call.argument<String>("emailId") ?: ""
+                userType = call.argument<String>("userType") ?:""
                 userId = call.argument<String>("userId") ?: ""
                 val combinedName = "$name | UserID: $userId"
                 if (url.isNullOrBlank() || appId.isNullOrBlank() || clientId.isNullOrBlank()) {
@@ -96,7 +99,18 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
 
                 val context = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
                 // ✅ Launch RequestActivity (Support SDK ticket form)
+                var listOfCustomField = listOf<CustomField>()
+                //RIDER - 29516552016157
+                if(userType == "RIDER"){
+                    listOfCustomField = listOf(CustomField(29516552016157, userId))
+                }
+                //DRIVER - 29516552016157
+                if(userType == "DRIVER"){
+                    listOfCustomField = listOf(CustomField(29516536736157, userId))
+                }
+
                 val config = RequestActivity.builder()
+                    .withCustomFields(listOfCustomField)
                     .withTags(listOf("user_id:$userId", "trip_id:$tripId"))
                     .intent(context)
 
@@ -141,9 +155,6 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
                         context = context,
                         channelKey = channelId,
                         successCallback = { zendesk ->
-                            println("==============>>>>>")
-                            println(zendesk.messaging.showMessaging(context))
-                            println("==============>>>>>")
                             zendesk.messaging.showMessaging(context)
                         },
                         failureCallback = { error ->
