@@ -341,7 +341,8 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
 
         guard let args = call.arguments as? [String: Any],
               let articleIdRaw = args[ZendeskSdkChannel.Argument.articleId] as? String,
-              let articleId = Int64(articleIdRaw)
+              !articleIdRaw.isEmpty,
+              Int64(articleIdRaw) != nil
         else {
             result(
                 FlutterError(
@@ -364,7 +365,7 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
                 return
             }
 
-            let articleVC = HelpCenterUi.buildHelpCenterArticleUi(withArticleId: NSNumber(value: articleId))
+            let articleVC = HelpCenterUi.buildHelpCenterArticleUi(withArticleId: articleIdRaw)
             let navController = UINavigationController(rootViewController: articleVC)
             navController.modalPresentationStyle = .fullScreen
             rootVC.present(navController, animated: true) {

@@ -11,7 +11,9 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import zendesk.answerbot.AnswerBot
+import zendesk.answerbot.AnswerBotEngine
 import zendesk.chat.Chat
+import zendesk.classic.messaging.MessagingActivity
 import zendesk.core.AnonymousIdentity
 import zendesk.core.Zendesk
 import zendesk.messaging.android.DefaultMessagingFactory
@@ -116,33 +118,36 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
 
     private fun logout(result: MethodChannel.Result) {
         try {
-            Chat.INSTANCE.reset()
+            Chat.INSTANCE.resetIdentity()
             Zendesk.INSTANCE.setIdentity(
                 AnonymousIdentity.Builder().build(),
             )
-            messagingZendesk?.logoutUser(
-                successCallback = {
-                    messagingZendesk?.invalidate()
-                    messagingZendesk = null
-                },
-                failureCallback = { error ->
-                    Log.w("ZENDESK", "Messaging logout failed: ${error.message}")
-                    messagingZendesk?.invalidate()
-                    messagingZendesk = null
-                },
-            ) ?: run {
-                ZendeskMessaging.instance?.invalidate()
-            }
 
-            userId = ""
-            userType = ""
-            visitorName = ""
-            visitorEmail = ""
-            isSupportInitialized = false
-            result.success(null)
+            val messaging = messagingZendesk ?: ZendeskMessaging.instance
+            if (messaging != null) {
+                messaging.logoutUser(
+                    successCallback = { completeLogout(result) },
+                    failureCallback = { error ->
+                        Log.w("ZENDESK", "Messaging logout failed: ${error.message}")
+                        completeLogout(result)
+                    },
+                )
+            } else {
+                completeLogout(result)
+            }
         } catch (e: Exception) {
             result.error(ZendeskSdkErrorCodes.LOGOUT_FAILED, e.localizedMessage, null)
         }
+    }
+
+    private fun completeLogout(result: MethodChannel.Result) {
+        messagingZendesk = null
+        userId = ""
+        userType = ""
+        visitorName = ""
+        visitorEmail = ""
+        isSupportInitialized = false
+        result.success(null)
     }
 
     private fun requireInitialized(result: MethodChannel.Result): Boolean {
@@ -380,7 +385,9 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
 
         try {
             val currentActivity = requireActivity(result) ?: return
-            zendesk.answerbot.AnswerBotUi.builder().show(currentActivity)
+            MessagingActivity.builder()
+                .withEngines(AnswerBotEngine.engine())
+                .show(currentActivity)
             result.success(null)
         } catch (e: Exception) {
             result.error(ZendeskSdkErrorCodes.ANSWERBOT_ERROR, e.localizedMessage, null)
@@ -429,12 +436,7 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
         val messageData = payload.mapValues { it.value.toString() }
 
         try {
-            when (
-                PushNotifications.validatePushIntegration(
-                    appContext,
-                    messageData,
-                )
-            ) {
+            when (PushNotifications.shouldBeDisplayed(messageData)) {
                 PushResponsibility.MESSAGING_SHOULD_DISPLAY -> {
                     PushNotifications.displayNotification(appContext, messageData)
                     result.success(true)
@@ -442,6 +444,10 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
 
                 PushResponsibility.MESSAGING_SHOULD_NOT_DISPLAY -> {
                     result.success(true)
+                }
+
+                PushResponsibility.NOT_FROM_MESSAGING -> {
+                    result.success(false)
                 }
 
                 else -> result.success(false)

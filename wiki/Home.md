@@ -216,7 +216,7 @@ to keep method/arg names consistent across platforms.
 - `logout`: resets Chat, clears identity, and invalidates the Messaging SDK instance.
 - `showHelpCenter` / article / category: Help Center UIs with `user_id`, `user_type`, `mobile_app` tags.
 - `startChat`: initializes Messaging v3, sets conversation fields/tags from `initialize`, then shows UI.
-- `startChatBot`: launches `AnswerBotUi`.
+- `startChatBot`: launches `MessagingActivity` with `AnswerBotEngine`.
 - `getUnreadMessageCount`, `updatePushNotificationToken`, `handlePushNotification`: Messaging APIs.
 
 ### iOS (`ZendeskSdkPlugin.swift`, SPM)
