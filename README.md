@@ -32,6 +32,19 @@ dependencies:
 
 Or use a path dependency while developing locally.
 
+## OOP architecture
+
+This plugin is structured as a Dart OOP teaching example: value objects, segregated platform interfaces, command pattern, sealed `ZendeskResult`, injectable `ZendeskService`, and an MVC example app. See [wiki/OOP-Guide.md](wiki/OOP-Guide.md).
+
+```dart
+final service = ZendeskService.fromSdkPlatform(ZendeskSdkPlatform.instance);
+
+await service.initialize(
+  config: ZendeskConfig(url: url, appId: appId, clientId: clientId),
+  user: ZendeskUser(name: name, emailId: emailId, userId: userId, userType: userType),
+);
+```
+
 ## Quick start
 
 ```dart

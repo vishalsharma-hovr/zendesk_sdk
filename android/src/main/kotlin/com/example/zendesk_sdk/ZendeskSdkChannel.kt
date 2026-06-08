@@ -1,3 +1,5 @@
+package com.example.zendesk_sdk
+
 object ZendeskSdkChannel {
     const val NAME = "zendesk_sdk"
 

@@ -2,26 +2,18 @@ import Flutter
 import UIKit
 import XCTest
 
-
 @testable import zendesk_sdk
 
-// This demonstrates a simple unit test of the Swift portion of this plugin's implementation.
-//
-// See https://developer.apple.com/documentation/xctest for more information about using XCTest.
-
 class RunnerTests: XCTestCase {
-
-  func testGetPlatformVersion() {
+  func testIsInitialized_returnsFalseBeforeInitialize() {
     let plugin = ZendeskSdkPlugin()
-
-    let call = FlutterMethodCall(methodName: "getPlatformVersion", arguments: [])
+    let call = FlutterMethodCall(methodName: ZendeskSdkChannel.Method.isInitialized, arguments: nil)
 
     let resultExpectation = expectation(description: "result block must be called.")
     plugin.handle(call) { result in
-      XCTAssertEqual(result as! String, "iOS " + UIDevice.current.systemVersion)
+      XCTAssertEqual(result as? Bool, false)
       resultExpectation.fulfill()
     }
     waitForExpectations(timeout: 1)
   }
-
 }

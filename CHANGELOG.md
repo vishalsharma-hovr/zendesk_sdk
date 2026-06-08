@@ -1,3 +1,7 @@
+## 1.2.0+4
+- Refactored Dart layer to demonstrate OOP: value objects, segregated platform interfaces, command pattern, sealed `ZendeskResult`, injectable `ZendeskService`, and MVC example (`ZendeskController` + `ZendeskDemoPage`).
+- Added `wiki/OOP-Guide.md` mapping each OOP concept to source files.
+
 ## 1.1.0+3
 - Added `logout()`, `isInitialized()`, `getUnreadMessageCount()`, `updatePushNotificationToken()`, and `handlePushNotification()` APIs.
 - Implemented Help Center article/category navigation on Android and iOS.

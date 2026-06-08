@@ -1,3 +1,5 @@
+package com.example.zendesk_sdk
+
 object ZendeskSdkErrorCodes {
     const val INVALID_ARGUMENTS = "INVALID_ARGUMENTS"
     const val NO_UI_CONTEXT = "NO_UI_CONTEXT"

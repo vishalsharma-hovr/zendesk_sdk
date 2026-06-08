@@ -1,23 +1,50 @@
+export 'src/models/zendesk_config.dart';
+export 'src/models/zendesk_help_center_query.dart';
+export 'src/models/zendesk_push_notification.dart';
+export 'src/models/zendesk_ticket_request.dart';
+export 'src/models/zendesk_user.dart';
+export 'src/platform/zendesk_lifecycle_platform.dart';
+export 'src/platform/zendesk_messaging_platform.dart';
+export 'src/platform/zendesk_support_platform.dart';
 export 'src/zendesk_custom_field.dart';
+export 'src/zendesk_result.dart';
 export 'src/zendesk_sdk_error_codes.dart';
 export 'src/zendesk_sdk_exception.dart';
+export 'src/zendesk_service.dart';
 
+import 'src/models/zendesk_config.dart';
+import 'src/models/zendesk_help_center_query.dart';
+import 'src/models/zendesk_push_notification.dart';
+import 'src/models/zendesk_ticket_request.dart';
+import 'src/models/zendesk_user.dart';
 import 'src/zendesk_custom_field.dart';
+import 'src/zendesk_result.dart';
+import 'src/zendesk_service.dart';
 import 'zendesk_sdk_platform_interface.dart';
 
 /// Entry point for the Zendesk Support, Chat, Answer Bot, and Messaging SDKs.
+///
+/// Thin facade over [ZendeskService] (Facade pattern). Prefer injecting
+/// [ZendeskService] directly when demonstrating dependency injection.
 class ZendeskSdk {
-  ZendeskSdk._();
+  ZendeskSdk._(this._service);
 
-  /// Shared singleton instance.
-  static final ZendeskSdk instance = ZendeskSdk._();
+  /// Shared singleton backed by the default platform implementation.
+  static final ZendeskSdk instance = ZendeskSdk._(
+    ZendeskService.fromSdkPlatform(ZendeskSdkPlatform.instance),
+  );
 
   factory ZendeskSdk() => instance;
 
+  /// Creates an SDK facade with an injected [ZendeskService] (Dependency Injection).
+  factory ZendeskSdk.withService(ZendeskService service) => ZendeskSdk._(service);
+
+  final ZendeskService _service;
+
+  /// Exposes the underlying service for advanced OOP/DI scenarios.
+  ZendeskService get service => _service;
+
   /// Initializes Zendesk Support, Chat, and Answer Bot with an anonymous identity.
-  ///
-  /// Call this once before any other SDK method. [userType] is stored as a
-  /// conversation/ticket tag on native platforms (for example `RIDER` or `DRIVER`).
   Future<void> initialize({
     required String url,
     required String appId,
@@ -27,64 +54,90 @@ class ZendeskSdk {
     required String userId,
     required String userType,
   }) {
-    return ZendeskSdkPlatform.instance.initialize(
-      url: url,
-      appId: appId,
-      clientId: clientId,
-      name: name,
-      emailId: emailId,
-      userId: userId,
-      userType: userType,
+    return _service.initialize(
+      config: ZendeskConfig(url: url, appId: appId, clientId: clientId),
+      user: ZendeskUser(
+        name: name,
+        emailId: emailId,
+        userId: userId,
+        userType: userType,
+      ),
     );
   }
 
-  /// Clears the current Zendesk identity and messaging session.
-  ///
-  /// Call when the user signs out so the next session does not reuse prior data.
-  Future<void> logout() {
-    return ZendeskSdkPlatform.instance.logout();
+  /// Object-oriented initialize returning an explicit [ZendeskResult].
+  Future<ZendeskResult<void>> initializeResult({
+    required ZendeskConfig config,
+    required ZendeskUser user,
+  }) {
+    return _service.initializeResult(config: config, user: user);
   }
 
-  /// Returns whether [initialize] has completed successfully on the native side.
-  Future<bool> isInitialized() {
-    return ZendeskSdkPlatform.instance.isInitialized();
-  }
+  Future<void> logout() => _service.logout();
 
-  /// Opens the Help Center filtered by [categoryIdList].
+  Future<ZendeskResult<void>> logoutResult() => _service.logoutResult();
+
+  Future<bool> isInitialized() => _service.isInitialized();
+
+  Future<ZendeskResult<bool>> isInitializedResult() => _service.isInitializedResult();
+
   Future<void> showHelpCenter({
     required String name,
     required String emailId,
     required String userId,
     required List<int> categoryIdList,
   }) {
-    return ZendeskSdkPlatform.instance.showHelpCenter(
-      name: name,
-      emailId: emailId,
-      userId: userId,
-      categoryIdList: categoryIdList,
+    return _service.showHelpCenter(
+      CategoryListHelpCenterQuery(
+        user: ZendeskUser(
+          name: name,
+          emailId: emailId,
+          userId: userId,
+          userType: '',
+        ),
+        categoryIdList: categoryIdList,
+      ),
     );
   }
 
-  /// Opens Answer Bot. Supported on Android and iOS.
-  Future<void> startChatBot() {
-    return ZendeskSdkPlatform.instance.startChatBot();
+  Future<void> showHelpCenterQuery(CategoryListHelpCenterQuery query) {
+    return _service.showHelpCenter(query);
   }
 
-  /// Opens a single Help Center article by [articleId].
+  Future<ZendeskResult<void>> showHelpCenterResult(ZendeskHelpCenterQuery query) {
+    return _service.showHelpCenterResult(query);
+  }
+
+  Future<void> startChatBot() => _service.startChatBot();
+
   Future<void> showHelpWithArticleId({required String articleId}) {
-    return ZendeskSdkPlatform.instance.showHelpCenterArticleId(
-      articleId: articleId,
-    );
+    return _service.showHelpCenterResult(
+      ArticleHelpCenterQuery(
+        user: const ZendeskUser(
+          name: '',
+          emailId: '',
+          userId: '',
+          userType: '',
+        ),
+        articleId: articleId,
+      ),
+    ).then((result) => result.valueOrThrow);
   }
 
-  /// Opens Help Center articles for a single [categoryId].
   Future<void> showHelpWithCategoryId({required String categoryId}) {
-    return ZendeskSdkPlatform.instance.showHelpCenterCategoryId(
-      categoryId: categoryId,
-    );
+    return _service.showHelpCenterResult(
+      CategoryHelpCenterQuery(
+        user: const ZendeskUser(
+          name: '',
+          emailId: '',
+          userId: '',
+          userType: '',
+        ),
+        categoryId: categoryId,
+      ),
+    ).then((result) => result.valueOrThrow);
   }
 
-  /// Opens ticket submission with user/trip metadata and optional [customFields].
   Future<void> sendUserInformationForTicket({
     required String name,
     required String emailId,
@@ -92,49 +145,54 @@ class ZendeskSdk {
     required String tripId,
     List<ZendeskCustomField> customFields = const [],
   }) {
-    return ZendeskSdkPlatform.instance.sendUserInformationForTicket(
-      name: name,
-      emailId: emailId,
-      userId: userId,
-      tripId: tripId,
-      customFields: customFields,
+    return _service.sendTicket(
+      ZendeskTicketRequest(
+        user: ZendeskUser(
+          name: name,
+          emailId: emailId,
+          userId: userId,
+          userType: '',
+        ),
+        tripId: tripId,
+        customFields: customFields,
+      ),
     );
   }
 
-  /// Opens the user's ticket list.
+  Future<void> sendTicket(ZendeskTicketRequest request) => _service.sendTicket(request);
+
+  Future<ZendeskResult<void>> sendTicketResult(ZendeskTicketRequest request) {
+    return _service.sendTicketResult(request);
+  }
+
   Future<void> showListOfTickets({
     required String name,
     required String emailId,
     required String userId,
     required String tripId,
   }) {
-    return ZendeskSdkPlatform.instance.showListOfTickets(
-      name: name,
-      emailId: emailId,
-      userId: userId,
+    return _service.showTicketList(
+      user: ZendeskUser(
+        name: name,
+        emailId: emailId,
+        userId: userId,
+        userType: '',
+      ),
       tripId: tripId,
     );
   }
 
-  /// Opens Zendesk Messaging using the given Messaging [channelId] (channel key).
   Future<void> startChat({required String channelId}) {
-    return ZendeskSdkPlatform.instance.startChat(channelId: channelId);
+    return _service.startChat(channelId: channelId);
   }
 
-  /// Returns the total unread messaging count, or `0` if messaging is unavailable.
-  Future<int> getUnreadMessageCount() {
-    return ZendeskSdkPlatform.instance.getUnreadMessageCount();
-  }
+  Future<int> getUnreadMessageCount() => _service.getUnreadMessageCount();
 
-  /// Registers or updates the device push token with Zendesk Messaging.
   Future<void> updatePushNotificationToken({required String token}) {
-    return ZendeskSdkPlatform.instance.updatePushNotificationToken(token: token);
+    return _service.updatePushToken(ZendeskPushToken(token));
   }
 
-  /// Validates and optionally displays a Zendesk Messaging push notification.
-  ///
-  /// Returns `true` when the payload belongs to Zendesk Messaging.
   Future<bool> handlePushNotification({required Map<String, dynamic> data}) {
-    return ZendeskSdkPlatform.instance.handlePushNotification(data: data);
+    return _service.handlePushNotification(ZendeskPushNotification(data: data));
   }
 }

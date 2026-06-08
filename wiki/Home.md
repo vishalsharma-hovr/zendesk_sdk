@@ -4,7 +4,7 @@ Welcome to the **zendesk_sdk** wiki — a Flutter plugin that integrates the Zen
 **Support**, **Chat**, **Answer Bot**, and **Messaging** SDKs for **Android** and **iOS**.
 
 - Repository: https://github.com/vishalsharma-hovr/zendesk_sdk
-- Version: `1.1.0+3`
+- Version: `1.2.0+4`
 - Flutter `>=3.41.0` · Dart `^3.11.0` · iOS 13+
 
 ---
@@ -25,6 +25,7 @@ Welcome to the **zendesk_sdk** wiki — a Flutter plugin that integrates the Zen
 | [Running the Example](#running-the-example) | Run the demo app |
 | [Testing](#testing) | Unit & integration tests |
 | [FAQ / Notes](#faq--notes) | Gotchas & answers |
+| [OOP Guide](OOP-Guide) | How this plugin teaches Dart OOP patterns |
 
 ---
 
@@ -89,6 +90,11 @@ zendesk_sdk/
 │   ├── zendesk_sdk_platform_interface.dart
 │   ├── zendesk_sdk_method_channel.dart   # Default MethodChannel impl
 │   └── src/
+│       ├── models/                       # Value objects (ZendeskUser, ZendeskConfig, …)
+│       ├── platform/                     # Segregated interfaces + adapters (ISP)
+│       ├── commands/                     # MethodChannel command objects
+│       ├── zendesk_service.dart          # Injectable application service (DIP)
+│       ├── zendesk_result.dart           # Sealed success/failure results
 │       ├── zendesk_sdk_channel.dart      # Channel/method/arg constants
 │       ├── zendesk_custom_field.dart     # Ticket custom field model
 │       └── zendesk_sdk_exception.dart    # Typed exception
