@@ -3,8 +3,6 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:zendesk_sdk/zendesk_sdk.dart';
 import 'package:zendesk_sdk/zendesk_sdk_method_channel.dart';
 import 'package:zendesk_sdk/zendesk_sdk_platform_interface.dart';
-import 'package:zendesk_sdk/src/zendesk_custom_field.dart';
-
 class MockZendeskSdkPlatform with MockPlatformInterfaceMixin implements ZendeskSdkPlatform {
   @override
   Future<void> initialize({
@@ -15,29 +13,30 @@ class MockZendeskSdkPlatform with MockPlatformInterfaceMixin implements ZendeskS
     required String name,
     required String userId,
     required String userType,
-  }) async {
-    // Mock behavior, e.g., log or assert inputs if desired
-  }
+  }) async {}
 
   @override
-  Future<void> showHelpCenter({required String name, required String emailId, required String userId, required List<int> categoryIdList}) async {
-    // Mock behavior
-  }
+  Future<void> logout() async {}
 
   @override
-  Future<void> startChatBot() {
-    throw UnimplementedError();
-  }
+  Future<bool> isInitialized() async => true;
 
   @override
-  Future<void> showHelpCenterArticleId({required String articleId}) {
-    throw UnimplementedError();
-  }
+  Future<void> showHelpCenter({
+    required String name,
+    required String emailId,
+    required String userId,
+    required List<int> categoryIdList,
+  }) async {}
 
   @override
-  Future<void> showHelpCenterCategoryId({required String categoryId}) {
-    throw UnimplementedError();
-  }
+  Future<void> startChatBot() async {}
+
+  @override
+  Future<void> showHelpCenterArticleId({required String articleId}) async {}
+
+  @override
+  Future<void> showHelpCenterCategoryId({required String categoryId}) async {}
 
   @override
   Future<void> sendUserInformationForTicket({
@@ -46,21 +45,27 @@ class MockZendeskSdkPlatform with MockPlatformInterfaceMixin implements ZendeskS
     required String userId,
     required String tripId,
     List<ZendeskCustomField> customFields = const [],
-  }) {
-    throw UnimplementedError();
-  }
+  }) async {}
 
   @override
-  Future<void> showListOfTickets({required String name, required String emailId, required String userId, required String tripId}) {
-    // TODO: implement showListOfTickets
-    throw UnimplementedError();
-  }
+  Future<void> showListOfTickets({
+    required String name,
+    required String emailId,
+    required String userId,
+    required String tripId,
+  }) async {}
 
   @override
-  Future<void> startChat({required String channelId}) {
-    // TODO: implement startChat
-    throw UnimplementedError();
-  }
+  Future<void> startChat({required String channelId}) async {}
+
+  @override
+  Future<int> getUnreadMessageCount() async => 3;
+
+  @override
+  Future<void> updatePushNotificationToken({required String token}) async {}
+
+  @override
+  Future<bool> handlePushNotification({required Map<String, dynamic> data}) async => true;
 }
 
 void main() {
@@ -70,21 +75,53 @@ void main() {
     expect(initialPlatform, isInstanceOf<MethodChannelZendeskSdk>());
   });
 
-  test('initialize and showHelpCenter work without error', () async {
-    ZendeskSdk zendesk = ZendeskSdk();
+  test('public API delegates to the platform implementation', () async {
+    final zendesk = ZendeskSdk();
     ZendeskSdkPlatform.instance = MockZendeskSdkPlatform();
 
-    await zendesk.initialize(url: 'https://example.zendesk.com', appId: 'fakeAppId', clientId: 'fakeClientId', emailId: "name@email.com", name: "name", userId: "userID", userType: "userType");
+    await zendesk.initialize(
+      url: 'https://example.zendesk.com',
+      appId: 'fakeAppId',
+      clientId: 'fakeClientId',
+      emailId: 'name@email.com',
+      name: 'name',
+      userId: 'userID',
+      userType: 'RIDER',
+    );
 
-    await zendesk.showHelpCenter(name: "Name", emailId: "EmailId", userId: "UserId", categoryIdList: [1, 2, 3]);
+    await zendesk.showHelpCenter(
+      name: 'Name',
+      emailId: 'EmailId',
+      userId: 'UserId',
+      categoryIdList: [1, 2, 3],
+    );
 
-    await zendesk.showHelpWithArticleId(articleId: "");
-
-    await zendesk.showHelpWithCategoryId(categoryId: "");
-
+    await zendesk.showHelpWithArticleId(articleId: '123');
+    await zendesk.showHelpWithCategoryId(categoryId: '456');
     await zendesk.startChatBot();
+    await zendesk.logout();
 
-    // No exceptions = success
-    expect(true, isTrue);
+    expect(await zendesk.isInitialized(), isTrue);
+    expect(await zendesk.getUnreadMessageCount(), 3);
+    expect(
+      await zendesk.handlePushNotification(data: {'key': 'value'}),
+      isTrue,
+    );
+  });
+
+  test('initialize rejects empty required fields before calling native', () async {
+    final platform = MethodChannelZendeskSdk();
+    await expectLater(
+      platform.initialize(
+        url: '',
+        appId: 'app',
+        clientId: 'client',
+        emailId: 'a@b.com',
+        name: 'n',
+        userId: 'u',
+        userType: 'RIDER',
+      ),
+      throwsA(isA<ZendeskSdkException>()),
+    );
   });
 }

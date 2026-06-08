@@ -3,6 +3,8 @@ object ZendeskSdkChannel {
 
     object Method {
         const val INITIALIZE = "initialize"
+        const val LOGOUT = "logout"
+        const val IS_INITIALIZED = "isInitialized"
         const val SHOW_HELP_CENTER = "showHelpCenter"
         const val SHOW_HELP_CENTER_ARTICLE_ID = "showHelpCenterArticleId"
         const val SHOW_HELP_CENTER_CATEGORY_ID = "showHelpCenterCategoryId"
@@ -10,6 +12,9 @@ object ZendeskSdkChannel {
         const val START_CHAT_BOT = "startChatBot"
         const val SHOW_LIST_OF_TICKETS = "showListOfTickets"
         const val START_CHAT = "startChat"
+        const val GET_UNREAD_MESSAGE_COUNT = "getUnreadMessageCount"
+        const val UPDATE_PUSH_NOTIFICATION_TOKEN = "updatePushNotificationToken"
+        const val HANDLE_PUSH_NOTIFICATION = "handlePushNotification"
     }
 
     object Argument {
@@ -28,5 +33,7 @@ object ZendeskSdkChannel {
         const val CUSTOM_FIELDS = "customFields"
         const val FIELD_ID = "fieldId"
         const val VALUE = "value"
+        const val PUSH_TOKEN = "pushToken"
+        const val PUSH_NOTIFICATION_DATA = "pushNotificationData"
     }
 }

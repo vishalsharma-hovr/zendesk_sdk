@@ -3,6 +3,8 @@ abstract final class ZendeskSdkChannel {
   static const String name = 'zendesk_sdk';
 
   static const String methodInitialize = 'initialize';
+  static const String methodLogout = 'logout';
+  static const String methodIsInitialized = 'isInitialized';
   static const String methodShowHelpCenter = 'showHelpCenter';
   static const String methodShowHelpCenterArticleId = 'showHelpCenterArticleId';
   static const String methodShowHelpCenterCategoryId = 'showHelpCenterCategoryId';
@@ -11,6 +13,10 @@ abstract final class ZendeskSdkChannel {
   static const String methodStartChatBot = 'startChatBot';
   static const String methodShowListOfTickets = 'showListOfTickets';
   static const String methodStartChat = 'startChat';
+  static const String methodGetUnreadMessageCount = 'getUnreadMessageCount';
+  static const String methodUpdatePushNotificationToken =
+      'updatePushNotificationToken';
+  static const String methodHandlePushNotification = 'handlePushNotification';
 
   static const String argZendeskUrl = 'zendeskUrl';
   static const String argAppId = 'appId';
@@ -25,4 +31,6 @@ abstract final class ZendeskSdkChannel {
   static const String argTripId = 'tripId';
   static const String argChannelId = 'channelId';
   static const String argCustomFields = 'customFields';
+  static const String argPushToken = 'pushToken';
+  static const String argPushNotificationData = 'pushNotificationData';
 }

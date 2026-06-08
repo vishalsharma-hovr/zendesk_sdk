@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'src/zendesk_custom_field.dart';
 import 'src/zendesk_sdk_channel.dart';
 import 'src/zendesk_sdk_exception.dart';
+import 'src/zendesk_sdk_validator.dart';
 import 'zendesk_sdk_platform_interface.dart';
 
 class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
@@ -13,9 +14,9 @@ class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
   MethodChannelZendeskSdk({MethodChannel? methodChannel})
       : methodChannel = methodChannel ?? const MethodChannel(ZendeskSdkChannel.name);
 
-  Future<void> _invoke(String method, [Map<String, dynamic>? arguments]) async {
+  Future<T?> _invoke<T>(String method, [Map<String, dynamic>? arguments]) async {
     try {
-      await methodChannel.invokeMethod<void>(method, arguments);
+      return await methodChannel.invokeMethod<T>(method, arguments);
     } on PlatformException catch (error) {
       throw ZendeskSdkException.fromPlatformException(error);
     }
@@ -31,7 +32,12 @@ class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
     required String userId,
     required String userType,
   }) {
-    return _invoke(ZendeskSdkChannel.methodInitialize, {
+    ZendeskSdkValidator.requireInitializeArgs(
+      url: url,
+      appId: appId,
+      clientId: clientId,
+    );
+    return _invoke<void>(ZendeskSdkChannel.methodInitialize, {
       ZendeskSdkChannel.argZendeskUrl: url,
       ZendeskSdkChannel.argAppId: appId,
       ZendeskSdkChannel.argClientId: clientId,
@@ -43,13 +49,24 @@ class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
   }
 
   @override
+  Future<void> logout() {
+    return _invoke<void>(ZendeskSdkChannel.methodLogout);
+  }
+
+  @override
+  Future<bool> isInitialized() async {
+    final result = await _invoke<bool>(ZendeskSdkChannel.methodIsInitialized);
+    return result ?? false;
+  }
+
+  @override
   Future<void> showHelpCenter({
     required String name,
     required String emailId,
     required String userId,
     required List<int> categoryIdList,
   }) {
-    return _invoke(ZendeskSdkChannel.methodShowHelpCenter, {
+    return _invoke<void>(ZendeskSdkChannel.methodShowHelpCenter, {
       ZendeskSdkChannel.argName: name,
       ZendeskSdkChannel.argEmailId: emailId,
       ZendeskSdkChannel.argUserId: userId,
@@ -59,14 +76,16 @@ class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
 
   @override
   Future<void> showHelpCenterArticleId({required String articleId}) {
-    return _invoke(ZendeskSdkChannel.methodShowHelpCenterArticleId, {
+    ZendeskSdkValidator.requireNonEmpty(articleId, 'articleId');
+    return _invoke<void>(ZendeskSdkChannel.methodShowHelpCenterArticleId, {
       ZendeskSdkChannel.argArticleId: articleId,
     });
   }
 
   @override
   Future<void> showHelpCenterCategoryId({required String categoryId}) {
-    return _invoke(ZendeskSdkChannel.methodShowHelpCenterCategoryId, {
+    ZendeskSdkValidator.requireNonEmpty(categoryId, 'categoryId');
+    return _invoke<void>(ZendeskSdkChannel.methodShowHelpCenterCategoryId, {
       ZendeskSdkChannel.argCategoryId: categoryId,
     });
   }
@@ -79,7 +98,7 @@ class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
     required String tripId,
     List<ZendeskCustomField> customFields = const [],
   }) {
-    return _invoke(ZendeskSdkChannel.methodSendUserInformationForTicket, {
+    return _invoke<void>(ZendeskSdkChannel.methodSendUserInformationForTicket, {
       ZendeskSdkChannel.argName: name,
       ZendeskSdkChannel.argEmailId: emailId,
       ZendeskSdkChannel.argUserId: userId,
@@ -91,7 +110,7 @@ class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
 
   @override
   Future<void> startChatBot() {
-    return _invoke(ZendeskSdkChannel.methodStartChatBot);
+    return _invoke<void>(ZendeskSdkChannel.methodStartChatBot);
   }
 
   @override
@@ -101,7 +120,7 @@ class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
     required String userId,
     required String tripId,
   }) {
-    return _invoke(ZendeskSdkChannel.methodShowListOfTickets, {
+    return _invoke<void>(ZendeskSdkChannel.methodShowListOfTickets, {
       ZendeskSdkChannel.argName: name,
       ZendeskSdkChannel.argEmailId: emailId,
       ZendeskSdkChannel.argUserId: userId,
@@ -111,8 +130,31 @@ class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
 
   @override
   Future<void> startChat({required String channelId}) {
-    return _invoke(ZendeskSdkChannel.methodStartChat, {
+    ZendeskSdkValidator.requireChannelId(channelId);
+    return _invoke<void>(ZendeskSdkChannel.methodStartChat, {
       ZendeskSdkChannel.argChannelId: channelId,
     });
+  }
+
+  @override
+  Future<int> getUnreadMessageCount() async {
+    final result = await _invoke<int>(ZendeskSdkChannel.methodGetUnreadMessageCount);
+    return result ?? 0;
+  }
+
+  @override
+  Future<void> updatePushNotificationToken({required String token}) {
+    ZendeskSdkValidator.requirePushToken(token);
+    return _invoke<void>(ZendeskSdkChannel.methodUpdatePushNotificationToken, {
+      ZendeskSdkChannel.argPushToken: token,
+    });
+  }
+
+  @override
+  Future<bool> handlePushNotification({required Map<String, dynamic> data}) async {
+    final result = await _invoke<bool>(ZendeskSdkChannel.methodHandlePushNotification, {
+      ZendeskSdkChannel.argPushNotificationData: data,
+    });
+    return result ?? false;
   }
 }

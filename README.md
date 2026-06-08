@@ -68,13 +68,18 @@ try {
 | Method | Description |
 | --- | --- |
 | `initialize` | Initializes Zendesk Support, Chat, and Answer Bot |
+| `logout` | Clears identity and messaging session (call on sign-out) |
+| `isInitialized` | Returns whether `initialize` completed on the native side |
 | `showHelpCenter` | Opens Help Center filtered by category IDs |
+| `showHelpWithArticleId` | Opens a single Help Center article by numeric ID |
+| `showHelpWithCategoryId` | Opens Help Center for a single category ID |
 | `sendUserInformationForTicket` | Opens ticket submission with user/trip metadata and optional custom fields |
 | `showListOfTickets` | Opens the user's ticket list |
 | `startChat` | Opens Zendesk Messaging with a channel key |
-| `startChatBot` | Opens Answer Bot (iOS only for now) |
-| `showHelpWithArticleId` | Not implemented on native yet |
-| `showHelpWithCategoryId` | Not implemented on native yet |
+| `startChatBot` | Opens Answer Bot (Android and iOS) |
+| `getUnreadMessageCount` | Returns total unread messaging count |
+| `updatePushNotificationToken` | Registers FCM/APNs token with Zendesk Messaging |
+| `handlePushNotification` | Validates and handles a Zendesk Messaging push payload |
 
 Use the singleton:
 
@@ -116,9 +121,11 @@ Common error codes:
 | Code | Meaning |
 | --- | --- |
 | `INVALID_ARGUMENTS` | Missing or invalid method arguments |
-| `NO_VIEW` / `NO_ACTIVITY` | No UI context to present Zendesk screens |
+| `NO_UI_CONTEXT` | No UI context to present Zendesk screens |
+| `NOT_INITIALIZED` | `initialize()` was not called first |
 | `INIT_FAILED` | Native SDK initialization failed |
 | `CHAT_INIT_FAILED` | Messaging SDK failed to initialize |
+| `LOGOUT_FAILED` | Failed to clear Zendesk session |
 
 ## MethodChannel contract
 

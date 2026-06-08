@@ -4,7 +4,7 @@ Welcome to the **zendesk_sdk** wiki — a Flutter plugin that integrates the Zen
 **Support**, **Chat**, **Answer Bot**, and **Messaging** SDKs for **Android** and **iOS**.
 
 - Repository: https://github.com/vishalsharma-hovr/zendesk_sdk
-- Version: `1.0.1+2`
+- Version: `1.1.0+3`
 - Flutter `>=3.41.0` · Dart `^3.11.0` · iOS 13+
 
 ---
@@ -33,11 +33,13 @@ Welcome to the **zendesk_sdk** wiki — a Flutter plugin that integrates the Zen
 | Capability | Method |
 | --- | --- |
 | Initialize Support/Chat/Answer Bot | `initialize(...)` |
+| Sign out / clear session | `logout()` |
 | Open Help Center (by category) | `showHelpCenter(...)` |
 | Submit a ticket | `sendUserInformationForTicket(...)` |
 | List tickets | `showListOfTickets(...)` |
 | Open Messaging (live chat) | `startChat(channelId:)` |
-| Open Answer Bot (iOS) | `startChatBot()` |
+| Open Answer Bot | `startChatBot()` |
+| Unread message badge | `getUnreadMessageCount()` |
 
 ---
 
@@ -113,13 +115,18 @@ Use the singleton: `ZendeskSdk.instance` (or `ZendeskSdk()`).
 | Method | Description |
 | --- | --- |
 | `initialize(...)` | Initializes Support, Chat, and Answer Bot; sets an anonymous identity |
+| `logout()` | Clears identity and messaging session |
+| `isInitialized()` | Returns whether `initialize` completed on native |
 | `showHelpCenter(...)` | Opens Help Center filtered by `categoryIdList` |
+| `showHelpWithArticleId(...)` | Opens a single Help Center article by numeric ID |
+| `showHelpWithCategoryId(...)` | Opens Help Center for a single category ID |
 | `sendUserInformationForTicket(...)` | Opens ticket submission with user/trip metadata + optional custom fields |
 | `showListOfTickets(...)` | Opens the user's ticket list |
 | `startChat(channelId:)` | Opens Zendesk Messaging with a channel key |
-| `startChatBot()` | Opens Answer Bot (iOS only for now) |
-| `showHelpWithArticleId(...)` | Declared but **not implemented** natively (`notImplemented`) |
-| `showHelpWithCategoryId(...)` | Declared but **not implemented** natively (`notImplemented`) |
+| `startChatBot()` | Opens Answer Bot (Android and iOS) |
+| `getUnreadMessageCount()` | Returns total unread messaging count |
+| `updatePushNotificationToken(...)` | Registers device push token with Messaging |
+| `handlePushNotification(...)` | Validates and handles a Messaging push payload |
 
 ### Example
 
@@ -178,6 +185,8 @@ Channel name: **`zendesk_sdk`** (defined in `ZendeskSdkChannel.name`).
 | Method constant | Channel method |
 | --- | --- |
 | `methodInitialize` | `initialize` |
+| `methodLogout` | `logout` |
+| `methodIsInitialized` | `isInitialized` |
 | `methodShowHelpCenter` | `showHelpCenter` |
 | `methodShowHelpCenterArticleId` | `showHelpCenterArticleId` |
 | `methodShowHelpCenterCategoryId` | `showHelpCenterCategoryId` |
@@ -185,9 +194,13 @@ Channel name: **`zendesk_sdk`** (defined in `ZendeskSdkChannel.name`).
 | `methodStartChatBot` | `startChatBot` |
 | `methodShowListOfTickets` | `showListOfTickets` |
 | `methodStartChat` | `startChat` |
+| `methodGetUnreadMessageCount` | `getUnreadMessageCount` |
+| `methodUpdatePushNotificationToken` | `updatePushNotificationToken` |
+| `methodHandlePushNotification` | `handlePushNotification` |
 
 Argument keys: `zendeskUrl`, `appId`, `clientId`, `name`, `emailId`, `userId`,
-`userType`, `categoryIdList`, `articleId`, `categoryId`, `tripId`, `channelId`, `customFields`.
+`userType`, `categoryIdList`, `articleId`, `categoryId`, `tripId`, `channelId`, `customFields`,
+`pushToken`, `pushNotificationData`.
 
 The same constants are mirrored natively in `ZendeskSdkChannel.kt` and `ZendeskSdkChannel.swift`
 to keep method/arg names consistent across platforms.
@@ -197,17 +210,14 @@ to keep method/arg names consistent across platforms.
 ## Platform Behavior
 
 ### Android (`ZendeskSdkPlugin.kt`)
-- `ActivityAware`; most UI actions require an attached `Activity` (else `NO_ACTIVITY`).
-- `initialize`: inits `Zendesk` (v2 Support/Chat/AnswerBot) with an `AnonymousIdentity`
-  using `name | UserID: userId` and email. Inits `Chat` with `clientId`/`appId`.
-- `showHelpCenter`: launches `HelpCenterActivity` filtered by category IDs, with a
-  contact-us button and request tags (`user_id`, `mobile_app`).
-- `sendUserInformationForTicket`: launches `RequestActivity` with custom fields and tags
-  (`user_id`, `trip_id`). Requires non-empty `userId` and `tripId`.
-- `showListOfTickets`: fetches all requests, then shows `RequestListActivity`.
-- `startChat`: uses Zendesk v3 (`zendesk.android.Zendesk`) + `DefaultMessagingFactory`
-  to show messaging.
-- `startChatBot`, `showHelpCenterArticleId`, `showHelpCenterCategoryId` → `notImplemented`.
+- `ActivityAware`; most UI actions require an attached `Activity` (else `NO_UI_CONTEXT`).
+- `initialize`: inits Support/Chat/AnswerBot with `AnonymousIdentity` and stores visitor info.
+  `userType` is applied as a `user_type:` tag on tickets and messaging.
+- `logout`: resets Chat, clears identity, and invalidates the Messaging SDK instance.
+- `showHelpCenter` / article / category: Help Center UIs with `user_id`, `user_type`, `mobile_app` tags.
+- `startChat`: initializes Messaging v3, sets conversation fields/tags from `initialize`, then shows UI.
+- `startChatBot`: launches `AnswerBotUi`.
+- `getUnreadMessageCount`, `updatePushNotificationToken`, `handlePushNotification`: Messaging APIs.
 
 ### iOS (`ZendeskSdkPlugin.swift`, SPM)
 - **SPM only** (no CocoaPods). Dependencies resolved via Swift Package Manager:
@@ -263,10 +273,12 @@ try {
 | Code | Meaning |
 | --- | --- |
 | `INVALID_ARGUMENTS` | Missing/invalid method arguments |
-| `NO_CONTEXT` / `NO_ACTIVITY` | No native context/UI to present screens |
+| `NO_UI_CONTEXT` | No native context/UI to present screens |
+| `NOT_INITIALIZED` | `initialize()` was not called first |
 | `INIT_FAILED` | Support/Chat/AnswerBot init failed |
 | `CHAT_INIT_FAILED` / `CHAT_ENGINE_FAILED` | Messaging init failed |
 | `LAUNCH_FAILED` | A screen failed to launch |
+| `LOGOUT_FAILED` | Failed to clear Zendesk session |
 
 ---
 
@@ -323,9 +335,9 @@ Run: `flutter test`
 ## FAQ / Notes
 
 - **Why SPM, not CocoaPods?** iOS uses SPM exclusively; the old `Podfile`/podspec were removed.
-- **Answer Bot / chat bot:** `startChatBot()` is iOS-only and `notImplemented` on Android.
-- **Article/Category-by-ID Help Center:** declared in Dart but `notImplemented` natively.
-- **Identity:** the SDK uses an anonymous identity built from name/email/userId.
+- **Sign-out:** call `logout()` when the user signs out to avoid leaking the prior session.
+- **Push tokens:** Android expects an FCM token string; iOS expects a hex-encoded APNs device token or UTF-8 string.
+- **Identity:** the SDK uses an anonymous identity built from name/email/userId; `userType` is stored as a tag.
 
 ---
 

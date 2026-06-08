@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zendesk_sdk/src/zendesk_sdk_channel.dart';
+import 'package:zendesk_sdk/src/zendesk_sdk_error_codes.dart';
 import 'package:zendesk_sdk/src/zendesk_sdk_exception.dart';
 import 'package:zendesk_sdk/zendesk_sdk_method_channel.dart';
 
@@ -19,9 +20,17 @@ void main() {
 
       switch (methodCall.method) {
         case ZendeskSdkChannel.methodInitialize:
+        case ZendeskSdkChannel.methodLogout:
         case ZendeskSdkChannel.methodShowHelpCenter:
         case ZendeskSdkChannel.methodStartChat:
+        case ZendeskSdkChannel.methodUpdatePushNotificationToken:
           return null;
+        case ZendeskSdkChannel.methodIsInitialized:
+          return true;
+        case ZendeskSdkChannel.methodGetUnreadMessageCount:
+          return 5;
+        case ZendeskSdkChannel.methodHandlePushNotification:
+          return true;
         default:
           throw PlatformException(code: 'not_implemented');
       }
@@ -43,7 +52,7 @@ void main() {
       emailId: 'name@email.com',
       name: 'name',
       userId: 'userID',
-      userType: 'userType',
+      userType: 'RIDER',
     );
 
     expect(log.single.method, ZendeskSdkChannel.methodInitialize);
@@ -56,7 +65,7 @@ void main() {
         ZendeskSdkChannel.argName: 'name',
         ZendeskSdkChannel.argEmailId: 'name@email.com',
         ZendeskSdkChannel.argUserId: 'userID',
-        ZendeskSdkChannel.argUserType: 'userType',
+        ZendeskSdkChannel.argUserType: 'RIDER',
       },
     );
   });
@@ -81,6 +90,39 @@ void main() {
     );
   });
 
+  test('logout invokes native logout method', () async {
+    await platform.logout();
+    expect(log.single.method, ZendeskSdkChannel.methodLogout);
+  });
+
+  test('isInitialized returns native value', () async {
+    expect(await platform.isInitialized(), isTrue);
+    expect(log.single.method, ZendeskSdkChannel.methodIsInitialized);
+  });
+
+  test('getUnreadMessageCount returns native value', () async {
+    expect(await platform.getUnreadMessageCount(), 5);
+    expect(log.single.method, ZendeskSdkChannel.methodGetUnreadMessageCount);
+  });
+
+  test('updatePushNotificationToken sends token', () async {
+    await platform.updatePushNotificationToken(token: 'device-token');
+    expect(log.single.method, ZendeskSdkChannel.methodUpdatePushNotificationToken);
+    expect(log.single.arguments, {ZendeskSdkChannel.argPushToken: 'device-token'});
+  });
+
+  test('handlePushNotification sends payload', () async {
+    final handled = await platform.handlePushNotification(
+      data: {'zendesk': 'message'},
+    );
+    expect(handled, isTrue);
+    expect(log.single.method, ZendeskSdkChannel.methodHandlePushNotification);
+    expect(
+      log.single.arguments,
+      {ZendeskSdkChannel.argPushNotificationData: {'zendesk': 'message'}},
+    );
+  });
+
   test('platform exceptions are converted to ZendeskSdkException', () async {
     await expectLater(
       platform.showHelpCenterArticleId(articleId: '123'),
@@ -92,5 +134,19 @@ void main() {
         ),
       ),
     );
+  });
+
+  test('dart validation rejects empty articleId', () async {
+    await expectLater(
+      platform.showHelpCenterArticleId(articleId: ''),
+      throwsA(
+        isA<ZendeskSdkException>().having(
+          (error) => error.code,
+          'code',
+          ZendeskSdkErrorCodes.invalidArguments,
+        ),
+      ),
+    );
+    expect(log, isEmpty);
   });
 }

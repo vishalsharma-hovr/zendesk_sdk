@@ -17,20 +17,41 @@ abstract class ZendeskSdkPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<void> initialize({required String url, required String appId, required String clientId, required String name, required String emailId, required String userId, required String userType}) {
+  Future<void> initialize({
+    required String url,
+    required String appId,
+    required String clientId,
+    required String name,
+    required String emailId,
+    required String userId,
+    required String userType,
+  }) {
     throw UnimplementedError('initialize() has not been implemented.');
   }
 
-  Future<void> showHelpCenter({required String name, required String emailId, required String userId, required List<int> categoryIdList}) {
+  Future<void> logout() {
+    throw UnimplementedError('logout() has not been implemented.');
+  }
+
+  Future<bool> isInitialized() {
+    throw UnimplementedError('isInitialized() has not been implemented.');
+  }
+
+  Future<void> showHelpCenter({
+    required String name,
+    required String emailId,
+    required String userId,
+    required List<int> categoryIdList,
+  }) {
     throw UnimplementedError('showHelpCenter() has not been implemented.');
   }
 
   Future<void> showHelpCenterArticleId({required String articleId}) {
-    throw UnimplementedError('showHelpCenterWithArticleId() has not been implemented.');
+    throw UnimplementedError('showHelpCenterArticleId() has not been implemented.');
   }
 
   Future<void> showHelpCenterCategoryId({required String categoryId}) {
-    throw UnimplementedError('showHelpCenterWithCategoryId() has not been implemented.');
+    throw UnimplementedError('showHelpCenterCategoryId() has not been implemented.');
   }
 
   Future<void> sendUserInformationForTicket({
@@ -44,14 +65,31 @@ abstract class ZendeskSdkPlatform extends PlatformInterface {
   }
 
   Future<void> startChatBot() {
-    throw UnimplementedError('startBot() has not been implemented.');
+    throw UnimplementedError('startChatBot() has not been implemented.');
   }
 
-  Future<void> showListOfTickets({required String name, required String emailId, required String userId, required String tripId}) {
+  Future<void> showListOfTickets({
+    required String name,
+    required String emailId,
+    required String userId,
+    required String tripId,
+  }) {
     throw UnimplementedError('showListOfTickets() has not been implemented.');
   }
 
   Future<void> startChat({required String channelId}) {
-    throw UnimplementedError("startChat() has not been implemented.");
+    throw UnimplementedError('startChat() has not been implemented.');
+  }
+
+  Future<int> getUnreadMessageCount() {
+    throw UnimplementedError('getUnreadMessageCount() has not been implemented.');
+  }
+
+  Future<void> updatePushNotificationToken({required String token}) {
+    throw UnimplementedError('updatePushNotificationToken() has not been implemented.');
+  }
+
+  Future<bool> handlePushNotification({required Map<String, dynamic> data}) {
+    throw UnimplementedError('handlePushNotification() has not been implemented.');
   }
 }

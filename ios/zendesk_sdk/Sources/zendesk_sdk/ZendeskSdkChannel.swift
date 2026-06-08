@@ -3,6 +3,8 @@ enum ZendeskSdkChannel {
 
     enum Method {
         static let initialize = "initialize"
+        static let logout = "logout"
+        static let isInitialized = "isInitialized"
         static let showHelpCenter = "showHelpCenter"
         static let showHelpCenterArticleId = "showHelpCenterArticleId"
         static let showHelpCenterCategoryId = "showHelpCenterCategoryId"
@@ -10,6 +12,9 @@ enum ZendeskSdkChannel {
         static let startChatBot = "startChatBot"
         static let showListOfTickets = "showListOfTickets"
         static let startChat = "startChat"
+        static let getUnreadMessageCount = "getUnreadMessageCount"
+        static let updatePushNotificationToken = "updatePushNotificationToken"
+        static let handlePushNotification = "handlePushNotification"
     }
 
     enum Argument {
@@ -28,5 +33,7 @@ enum ZendeskSdkChannel {
         static let customFields = "customFields"
         static let fieldId = "fieldId"
         static let value = "value"
+        static let pushToken = "pushToken"
+        static let pushNotificationData = "pushNotificationData"
     }
 }

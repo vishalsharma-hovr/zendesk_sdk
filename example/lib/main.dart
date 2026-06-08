@@ -174,6 +174,40 @@ class _MyAppState extends State<MyApp> {
             },
             child: const Text('Start chat'),
           ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                final count = await _zendeskSdkPlugin.getUnreadMessageCount();
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Unread messages: $count')),
+                );
+              } catch (error) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Unread count failed: $error')),
+                );
+              }
+            },
+            child: const Text('Get unread count'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                await _zendeskSdkPlugin.logout();
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Zendesk session cleared')),
+                );
+              } catch (error) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Logout failed: $error')),
+                );
+              }
+            },
+            child: const Text('Logout'),
+          ),
         ],
       ),
     );
