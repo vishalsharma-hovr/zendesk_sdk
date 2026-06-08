@@ -13,20 +13,20 @@ Welcome to the **zendesk_sdk** wiki — a Flutter plugin that integrates the Zen
 
 | Section | What's inside |
 | --- | --- |
-| [Overview](WIKI#overview) | What the plugin does |
-| [Architecture](WIKI#architecture) | How the Dart ↔ native bridge is wired |
-| [Project Structure](WIKI#project-structure) | Directory layout |
-| [Public API](WIKI#public-api) | Every method with examples |
-| [MethodChannel Contract](WIKI#methodchannel-contract) | Channel/method/argument names |
-| [Platform Behavior](WIKI#platform-behavior) | Android & iOS specifics |
-| [Secrets & Configuration](WIKI#secrets--configuration) | `.secrets/zendesk.env` wiring |
-| [Error Handling](WIKI#error-handling) | `ZendeskSdkException` & error codes |
-| [Setup & Installation](WIKI#setup--installation) | Adding the dependency |
-| [Running the Example](WIKI#running-the-example) | Run the demo app |
-| [Testing](WIKI#testing) | Unit & integration tests |
-| [FAQ / Notes](WIKI#faq--notes) | Gotchas & answers |
+| [Overview](https://github.com/vishalsharma-hovr/zendesk_sdk/wiki/WIKI#overview) | What the plugin does |
+| [Architecture](https://github.com/vishalsharma-hovr/zendesk_sdk/wiki/WIKI#architecture) | How the Dart ↔ native bridge is wired |
+| [Project Structure](https://github.com/vishalsharma-hovr/zendesk_sdk/wiki/WIKI#project-structure) | Directory layout |
+| [Public API](https://github.com/vishalsharma-hovr/zendesk_sdk/wiki/WIKI#public-api) | Every method with examples |
+| [MethodChannel Contract](https://github.com/vishalsharma-hovr/zendesk_sdk/wiki/WIKI#methodchannel-contract) | Channel/method/argument names |
+| [Platform Behavior](https://github.com/vishalsharma-hovr/zendesk_sdk/wiki/WIKI#platform-behavior) | Android & iOS specifics |
+| [Secrets & Configuration](https://github.com/vishalsharma-hovr/zendesk_sdk/wiki/WIKI#secrets--configuration) | `.secrets/zendesk.env` wiring |
+| [Error Handling](https://github.com/vishalsharma-hovr/zendesk_sdk/wiki/WIKI#error-handling) | `ZendeskSdkException` & error codes |
+| [Setup & Installation](https://github.com/vishalsharma-hovr/zendesk_sdk/wiki/WIKI#setup--installation) | Adding the dependency |
+| [Running the Example](https://github.com/vishalsharma-hovr/zendesk_sdk/wiki/WIKI#running-the-example) | Run the demo app |
+| [Testing](https://github.com/vishalsharma-hovr/zendesk_sdk/wiki/WIKI#testing) | Unit & integration tests |
+| [FAQ / Notes](https://github.com/vishalsharma-hovr/zendesk_sdk/wiki/WIKI#faq--notes) | Gotchas & answers |
 
-> The full reference lives in [WIKI](WIKI).
+> The full reference lives in [WIKI](https://github.com/vishalsharma-hovr/zendesk_sdk/wiki/WIKI).
 
 ---
 
