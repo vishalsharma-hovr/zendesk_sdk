@@ -1,12 +1,48 @@
+export 'src/zendesk_custom_field.dart';
+export 'src/zendesk_sdk_exception.dart';
+
+import 'src/zendesk_custom_field.dart';
 import 'zendesk_sdk_platform_interface.dart';
 
 class ZendeskSdk {
-  Future<void> initialize({required String url, required String appId, required String clientId, required String name, required String emailId, required String userId, required String userType}) {
-    return ZendeskSdkPlatform.instance.initialize(url: url, appId: appId, clientId: clientId, name: name, emailId: emailId, userId: userId, userType: userType);
+  ZendeskSdk._();
+
+  static final ZendeskSdk instance = ZendeskSdk._();
+
+  factory ZendeskSdk() => instance;
+
+  Future<void> initialize({
+    required String url,
+    required String appId,
+    required String clientId,
+    required String name,
+    required String emailId,
+    required String userId,
+    required String userType,
+  }) {
+    return ZendeskSdkPlatform.instance.initialize(
+      url: url,
+      appId: appId,
+      clientId: clientId,
+      name: name,
+      emailId: emailId,
+      userId: userId,
+      userType: userType,
+    );
   }
 
-  Future<void> showHelpCenter({required String name, required String emailId, required String userId, required List<int> categoryIdList}) {
-    return ZendeskSdkPlatform.instance.showHelpCenter(name: name, emailId: emailId, userId: userId, categoryIdList: categoryIdList);
+  Future<void> showHelpCenter({
+    required String name,
+    required String emailId,
+    required String userId,
+    required List<int> categoryIdList,
+  }) {
+    return ZendeskSdkPlatform.instance.showHelpCenter(
+      name: name,
+      emailId: emailId,
+      userId: userId,
+      categoryIdList: categoryIdList,
+    );
   }
 
   Future<void> startChatBot() {
@@ -14,19 +50,45 @@ class ZendeskSdk {
   }
 
   Future<void> showHelpWithArticleId({required String articleId}) {
-    return ZendeskSdkPlatform.instance.showHelpCenterArticleId(articleId: articleId);
+    return ZendeskSdkPlatform.instance.showHelpCenterArticleId(
+      articleId: articleId,
+    );
   }
 
   Future<void> showHelpWithCategoryId({required String categoryId}) {
-    return ZendeskSdkPlatform.instance.showHelpCenterCategoryId(categoryId: categoryId);
+    return ZendeskSdkPlatform.instance.showHelpCenterCategoryId(
+      categoryId: categoryId,
+    );
   }
 
-  Future<void> sendUserInformationForTicket({required String name, required String emailId, required String userId, required String tripId}) {
-    return ZendeskSdkPlatform.instance.sendUserInformationForTicket(name: name, emailId: emailId, userId: userId, tripId: tripId);
+  Future<void> sendUserInformationForTicket({
+    required String name,
+    required String emailId,
+    required String userId,
+    required String tripId,
+    List<ZendeskCustomField> customFields = const [],
+  }) {
+    return ZendeskSdkPlatform.instance.sendUserInformationForTicket(
+      name: name,
+      emailId: emailId,
+      userId: userId,
+      tripId: tripId,
+      customFields: customFields,
+    );
   }
 
-  Future<void> showListOfTickets({required String name, required String emailId, required String userId, required String tripId}) {
-    return ZendeskSdkPlatform.instance.showListOfTickets(name: name, emailId: emailId, userId: userId, tripId: tripId);
+  Future<void> showListOfTickets({
+    required String name,
+    required String emailId,
+    required String userId,
+    required String tripId,
+  }) {
+    return ZendeskSdkPlatform.instance.showListOfTickets(
+      name: name,
+      emailId: emailId,
+      userId: userId,
+      tripId: tripId,
+    );
   }
 
   Future<void> startChat({required String channelId}) {

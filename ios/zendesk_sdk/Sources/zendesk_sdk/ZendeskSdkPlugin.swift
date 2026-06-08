@@ -16,11 +16,10 @@ import ZendeskSDK
 public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
     // ✅ GLOBAL USER ID (same as Android)
     private var userId: String = ""
-    private var userType: String = ""
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(
-            name: "zendesk_sdk",
+            name: ZendeskSdkChannel.name,
             binaryMessenger: registrar.messenger()
         )
         let instance = ZendeskSdkPlugin()
@@ -29,13 +28,13 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
-        case "initialize":
+        case ZendeskSdkChannel.Method.initialize:
             guard let args = call.arguments as? [String: Any],
-                  let zendeskUrl = args["zendeskUrl"] as? String,
-                  let appId = args["appId"] as? String,
-                  let clientId = args["clientId"] as? String,
-                  let name = args["name"] as? String,
-                  let emailId = args["emailId"] as? String
+                  let zendeskUrl = args[ZendeskSdkChannel.Argument.zendeskUrl] as? String,
+                  let appId = args[ZendeskSdkChannel.Argument.appId] as? String,
+                  let clientId = args[ZendeskSdkChannel.Argument.clientId] as? String,
+                  let name = args[ZendeskSdkChannel.Argument.name] as? String,
+                  let emailId = args[ZendeskSdkChannel.Argument.emailId] as? String
             else {
                 result(
                     FlutterError(
@@ -45,46 +44,37 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
                     ))
                 return
             }
-            // ✅ STORE USER ID ONCE
-            userId = args["userId"] as? String ?? ""
-            userType = args["userType"] as? String ?? ""
-            // Initialize Zendesk
+            userId = args[ZendeskSdkChannel.Argument.userId] as? String ?? ""
             Zendesk.initialize(
                 appId: appId,
                 clientId: clientId,
                 zendeskUrl: zendeskUrl
             )
 
-            // Initialize Support SDK
             Support.initialize(withZendesk: Zendesk.instance)
             let combinedName = "\(name) | UserID: \(userId)"
-            // Set identity (anonymous for now)
             let identity = Identity.createAnonymous(name: combinedName, email: emailId)
             Zendesk.instance?.setIdentity(identity)
-                
+
             Chat.initialize(accountKey: clientId, appId: appId)
             AnswerBot.initialize(withZendesk: Zendesk.instance, support: Support.instance!)
             result(nil)
 
-        case "showHelpCenter":
+        case ZendeskSdkChannel.Method.showHelpCenter:
             showHelpCenterFullscreen(result: result, call: call)
-            result(nil)
 
-        case "sendUserInformationForTicket":
+        case ZendeskSdkChannel.Method.sendUserInformationForTicket:
             sendUserInfomationForTicketCenterFullscreen(result: result, call: call)
-            result(nil)
 
-        case "startChatBot":
+        case ZendeskSdkChannel.Method.startChatBot:
             showAnswerBotFullscreen(result: result)
-            result(nil)
 
-        case "showListOfTickets":
-            showListOfTicketsFullscreen()
-            result(nil)
+        case ZendeskSdkChannel.Method.showListOfTickets:
+            showListOfTicketsFullscreen(result: result)
 
-        case "startChat":
+        case ZendeskSdkChannel.Method.startChat:
             guard let args = call.arguments as? [String: Any],
-                  let channelId = args["channelId"] as? String
+                  let channelId = args[ZendeskSdkChannel.Argument.channelId] as? String
             else {
                 result(
                     FlutterError(
@@ -94,28 +84,39 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
                     ))
                 return
             }
-                startChat(channelId: channelId)
-            result(nil)
+            startChat(channelId: channelId, result: result)
+
+        case ZendeskSdkChannel.Method.showHelpCenterArticleId,
+             ZendeskSdkChannel.Method.showHelpCenterCategoryId:
+            result(FlutterMethodNotImplemented)
 
         default:
             result(FlutterMethodNotImplemented)
         }
     }
 
-    func showListOfTicketsFullscreen() {
+    func showListOfTicketsFullscreen(result: @escaping FlutterResult) {
         DispatchQueue.main.async {
-            let requestListController = RequestUi.buildRequestList()
-            if let rootVC = self.getRootViewController() {
-                if let navController = rootVC as? UINavigationController {
-                    navController.pushViewController(requestListController, animated: true)
-                } else {
-                    let navController = UINavigationController(rootViewController: requestListController)
-                    navController.modalPresentationStyle = .fullScreen
-                    rootVC.present(navController, animated: true, completion: nil)
-                }
-            } else {
-                print("No root view controller found to show ticket list.")
+            guard let rootVC = self.getRootViewController() else {
+                result(
+                    FlutterError(
+                        code: "NO_VIEW",
+                        message: "No root view controller found",
+                        details: nil
+                    )
+                )
+                return
             }
+
+            let requestListController = RequestUi.buildRequestList()
+            if let navController = rootVC as? UINavigationController {
+                navController.pushViewController(requestListController, animated: true)
+            } else {
+                let navController = UINavigationController(rootViewController: requestListController)
+                navController.modalPresentationStyle = .fullScreen
+                rootVC.present(navController, animated: true, completion: nil)
+            }
+            result(nil)
         }
     }
     @objc private func closeZendeskScreen() {
@@ -226,47 +227,56 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
 //        }
 //    }
 
-    func startChat(channelId: String) {
-        print("=============> Start chat")
+    func startChat(channelId: String, result: @escaping FlutterResult) {
         Zendesk.initialize(
             withChannelKey: channelId,
             messagingFactory: DefaultMessagingFactory()
-        ) { result in
-            
-            switch result {
-                case .success(_):
-                    DispatchQueue.main.async {
-                        guard
-                            let viewController = Zendesk.instance?.messaging?.messagingViewController(),
-                            let rootVC = self.getRootViewController()
-                        else {
-                            print("Failed to get Zendesk viewController or rootVC")
-                            return
-                        }
-                        
-                            // Add close button
-                        viewController.navigationItem.leftBarButtonItem = UIBarButtonItem(
-                            barButtonSystemItem: .close,
-                            target: self,
-                            action: #selector(self.closeZendeskScreen)
+        ) { initResult in
+            switch initResult {
+            case .success:
+                DispatchQueue.main.async {
+                    guard
+                        let viewController = Zendesk.instance?.messaging?.messagingViewController(),
+                        let rootVC = self.getRootViewController()
+                    else {
+                        result(
+                            FlutterError(
+                                code: "NO_VIEW",
+                                message: "Failed to get Zendesk view controller or root view controller",
+                                details: nil
+                            )
                         )
-                        
-                        if let nav = rootVC as? UINavigationController {
-                            nav.pushViewController(viewController, animated: true)
-                        } else if let nav = rootVC.navigationController {
-                            nav.pushViewController(viewController, animated: true)
-                        } else {
-                            let nav = UINavigationController(rootViewController: viewController)
-                            nav.modalPresentationStyle = .fullScreen
-                            rootVC.present(nav, animated: true)
-                        }
+                        return
                     }
-                    
-                case .failure(let error):
-                    DispatchQueue.main.async {
-                        print("Zendesk init failed: \(error.localizedDescription)")
-                        self.showErrorAlert(message: error.localizedDescription)
+
+                    viewController.navigationItem.leftBarButtonItem = UIBarButtonItem(
+                        barButtonSystemItem: .close,
+                        target: self,
+                        action: #selector(self.closeZendeskScreen)
+                    )
+
+                    if let nav = rootVC as? UINavigationController {
+                        nav.pushViewController(viewController, animated: true)
+                    } else if let nav = rootVC.navigationController {
+                        nav.pushViewController(viewController, animated: true)
+                    } else {
+                        let nav = UINavigationController(rootViewController: viewController)
+                        nav.modalPresentationStyle = .fullScreen
+                        rootVC.present(nav, animated: true)
                     }
+                    result(nil)
+                }
+
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    result(
+                        FlutterError(
+                            code: "CHAT_INIT_FAILED",
+                            message: error.localizedDescription,
+                            details: nil
+                        )
+                    )
+                }
             }
         }
     }
@@ -310,7 +320,7 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
 
             // Extract user info
             guard let args = call.arguments as? [String: Any],
-                  let tripId = args["tripId"] as? String
+                  let tripId = args[ZendeskSdkChannel.Argument.tripId] as? String
             else {
                 result(
                     FlutterError(
@@ -324,14 +334,10 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
             // ✅ Create Request UI (ticket submission)
             let requestConfig = RequestUiConfiguration()
             requestConfig.tags = ["user_id:\(self.userId)", "trip_id:\(tripId)"]
-            if(self.userType == "RIDER")
-            {
-            requestConfig.customFields = [CustomField(fieldId: 29516552016157,value: "RIDER")]
+            let customFields = self.parseCustomFields(from: args)
+            if !customFields.isEmpty {
+                requestConfig.customFields = customFields
             }
-            if(self.userType == "DRIVER"){
-                requestConfig.customFields = [CustomField(fieldId: 29516536736157,value: "DRIVER")]
-            }
-            //       requestConfig.subject = "Trip Support Request"
 
             let requestVC = RequestUi.buildRequestUi(with: [requestConfig])
             let navController = UINavigationController(rootViewController: requestVC)
@@ -368,9 +374,9 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
             }
             // Extract user info
             guard let args = call.arguments as? [String: Any],
-                  let name = args["name"] as? String,
-                  let emailId = args["emailId"] as? String,
-                  let categoryIdList = args["categoryIdList"] as? [NSNumber]
+                  let name = args[ZendeskSdkChannel.Argument.name] as? String,
+                  let emailId = args[ZendeskSdkChannel.Argument.emailId] as? String,
+                  let categoryIdList = args[ZendeskSdkChannel.Argument.categoryIdList] as? [NSNumber]
             else {
                 result(
                     FlutterError(
@@ -474,6 +480,20 @@ public class ZendeskSdkPlugin: NSObject, FlutterPlugin {
             {
                 presentedVC.dismiss(animated: true, completion: nil)
             }
+        }
+    }
+
+    private func parseCustomFields(from args: [String: Any]) -> [CustomField] {
+        guard let customFieldsArg = args[ZendeskSdkChannel.Argument.customFields] as? [[String: Any]] else {
+            return []
+        }
+
+        return customFieldsArg.compactMap { field in
+            guard let fieldIdNumber = field[ZendeskSdkChannel.Argument.fieldId] as? NSNumber,
+                  let value = field[ZendeskSdkChannel.Argument.value] as? String else {
+                return nil
+            }
+            return CustomField(fieldId: fieldIdNumber.int64Value, value: value)
         }
     }
 

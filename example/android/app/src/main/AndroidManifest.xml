@@ -31,6 +31,20 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Zendesk config (values injected from .secrets/zendesk.env) -->
+        <meta-data
+            android:name="ZENDESK_URL"
+            android:value="${ZENDESK_URL}" />
+        <meta-data
+            android:name="ZENDESK_APP_ID"
+            android:value="${ZENDESK_APP_ID}" />
+        <meta-data
+            android:name="ZENDESK_CLIENT_ID"
+            android:value="${ZENDESK_CLIENT_ID}" />
+        <meta-data
+            android:name="ZENDESK_CHANNEL_ID"
+            android:value="${ZENDESK_CHANNEL_ID}" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

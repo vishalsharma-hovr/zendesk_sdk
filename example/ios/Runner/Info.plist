@@ -66,5 +66,13 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>ZENDESK_URL</key>
+	<string>$(ZENDESK_URL)</string>
+	<key>ZENDESK_APP_ID</key>
+	<string>$(ZENDESK_APP_ID)</string>
+	<key>ZENDESK_CLIENT_ID</key>
+	<string>$(ZENDESK_CLIENT_ID)</string>
+	<key>ZENDESK_CHANNEL_ID</key>
+	<string>$(ZENDESK_CHANNEL_ID)</string>
 </dict>
 </plist>

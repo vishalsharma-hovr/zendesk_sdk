@@ -1,5 +1,6 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+import 'src/zendesk_custom_field.dart';
 import 'zendesk_sdk_method_channel.dart';
 
 abstract class ZendeskSdkPlatform extends PlatformInterface {
@@ -32,7 +33,13 @@ abstract class ZendeskSdkPlatform extends PlatformInterface {
     throw UnimplementedError('showHelpCenterWithCategoryId() has not been implemented.');
   }
 
-  Future<void> sendUserInformationForTicket({required String name, required String emailId, required String userId, required String tripId}) {
+  Future<void> sendUserInformationForTicket({
+    required String name,
+    required String emailId,
+    required String userId,
+    required String tripId,
+    List<ZendeskCustomField> customFields = const [],
+  }) {
     throw UnimplementedError('sendUserInformationForTicket() has not been implemented');
   }
 

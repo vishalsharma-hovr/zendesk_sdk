@@ -1,11 +1,25 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import 'src/zendesk_custom_field.dart';
+import 'src/zendesk_sdk_channel.dart';
+import 'src/zendesk_sdk_exception.dart';
 import 'zendesk_sdk_platform_interface.dart';
 
 class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
   @visibleForTesting
-  final methodChannel = const MethodChannel('zendesk_sdk');
+  final MethodChannel methodChannel;
+
+  MethodChannelZendeskSdk({MethodChannel? methodChannel})
+      : methodChannel = methodChannel ?? const MethodChannel(ZendeskSdkChannel.name);
+
+  Future<void> _invoke(String method, [Map<String, dynamic>? arguments]) async {
+    try {
+      await methodChannel.invokeMethod<void>(method, arguments);
+    } on PlatformException catch (error) {
+      throw ZendeskSdkException.fromPlatformException(error);
+    }
+  }
 
   @override
   Future<void> initialize({
@@ -16,42 +30,89 @@ class MethodChannelZendeskSdk extends ZendeskSdkPlatform {
     required String emailId,
     required String userId,
     required String userType,
-  }) async {
-    await methodChannel.invokeMethod('initialize', {'zendeskUrl': url, 'appId': appId, 'clientId': clientId, "name": name, "emailId": emailId, "userId": userId, "userType": userType});
+  }) {
+    return _invoke(ZendeskSdkChannel.methodInitialize, {
+      ZendeskSdkChannel.argZendeskUrl: url,
+      ZendeskSdkChannel.argAppId: appId,
+      ZendeskSdkChannel.argClientId: clientId,
+      ZendeskSdkChannel.argName: name,
+      ZendeskSdkChannel.argEmailId: emailId,
+      ZendeskSdkChannel.argUserId: userId,
+      ZendeskSdkChannel.argUserType: userType,
+    });
   }
 
   @override
-  Future<void> showHelpCenter({required String name, required String emailId, required String userId, required List<int> categoryIdList}) async {
-    await methodChannel.invokeMethod('showHelpCenter', {"name": name, "emailId": emailId, "userId": userId, "categoryIdList": categoryIdList});
+  Future<void> showHelpCenter({
+    required String name,
+    required String emailId,
+    required String userId,
+    required List<int> categoryIdList,
+  }) {
+    return _invoke(ZendeskSdkChannel.methodShowHelpCenter, {
+      ZendeskSdkChannel.argName: name,
+      ZendeskSdkChannel.argEmailId: emailId,
+      ZendeskSdkChannel.argUserId: userId,
+      ZendeskSdkChannel.argCategoryIdList: categoryIdList,
+    });
   }
 
   @override
-  Future<void> showHelpCenterArticleId({required String articleId}) async {
-    await methodChannel.invokeMethod('showHelpCenterAriticleId', {"articleId": articleId});
+  Future<void> showHelpCenterArticleId({required String articleId}) {
+    return _invoke(ZendeskSdkChannel.methodShowHelpCenterArticleId, {
+      ZendeskSdkChannel.argArticleId: articleId,
+    });
   }
 
   @override
-  Future<void> showHelpCenterCategoryId({required String categoryId}) async {
-    await methodChannel.invokeMethod('showHelpCenterCategoryId', {"categoryId": categoryId});
+  Future<void> showHelpCenterCategoryId({required String categoryId}) {
+    return _invoke(ZendeskSdkChannel.methodShowHelpCenterCategoryId, {
+      ZendeskSdkChannel.argCategoryId: categoryId,
+    });
   }
 
   @override
-  Future<void> sendUserInformationForTicket({required String name, required String emailId, required String userId, required String tripId}) async {
-    await methodChannel.invokeMethod("sendUserInformationForTicket", {"name": name, "emailId": emailId, "userId": userId, "tripId": tripId});
+  Future<void> sendUserInformationForTicket({
+    required String name,
+    required String emailId,
+    required String userId,
+    required String tripId,
+    List<ZendeskCustomField> customFields = const [],
+  }) {
+    return _invoke(ZendeskSdkChannel.methodSendUserInformationForTicket, {
+      ZendeskSdkChannel.argName: name,
+      ZendeskSdkChannel.argEmailId: emailId,
+      ZendeskSdkChannel.argUserId: userId,
+      ZendeskSdkChannel.argTripId: tripId,
+      ZendeskSdkChannel.argCustomFields:
+          customFields.map((field) => field.toJson()).toList(),
+    });
   }
 
   @override
-  Future<void> startChatBot() async {
-    await methodChannel.invokeMethod('startChatBot');
+  Future<void> startChatBot() {
+    return _invoke(ZendeskSdkChannel.methodStartChatBot);
   }
 
   @override
-  Future<void> showListOfTickets({required String name, required String emailId, required String userId, required String tripId}) async {
-    await methodChannel.invokeMethod('showListOfTickets', {"name": name, "emailId": emailId, "userId": userId, "tripId": tripId});
+  Future<void> showListOfTickets({
+    required String name,
+    required String emailId,
+    required String userId,
+    required String tripId,
+  }) {
+    return _invoke(ZendeskSdkChannel.methodShowListOfTickets, {
+      ZendeskSdkChannel.argName: name,
+      ZendeskSdkChannel.argEmailId: emailId,
+      ZendeskSdkChannel.argUserId: userId,
+      ZendeskSdkChannel.argTripId: tripId,
+    });
   }
 
   @override
-  Future<void> startChat({required String channelId}) async {
-    await methodChannel.invokeMethod('startChat', {"channelId": channelId});
+  Future<void> startChat({required String channelId}) {
+    return _invoke(ZendeskSdkChannel.methodStartChat, {
+      ZendeskSdkChannel.argChannelId: channelId,
+    });
   }
 }

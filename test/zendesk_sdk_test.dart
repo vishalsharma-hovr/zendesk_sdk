@@ -3,6 +3,7 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:zendesk_sdk/zendesk_sdk.dart';
 import 'package:zendesk_sdk/zendesk_sdk_method_channel.dart';
 import 'package:zendesk_sdk/zendesk_sdk_platform_interface.dart';
+import 'package:zendesk_sdk/src/zendesk_custom_field.dart';
 
 class MockZendeskSdkPlatform with MockPlatformInterfaceMixin implements ZendeskSdkPlatform {
   @override
@@ -39,7 +40,13 @@ class MockZendeskSdkPlatform with MockPlatformInterfaceMixin implements ZendeskS
   }
 
   @override
-  Future<void> sendUserInformationForTicket({required String name, required String emailId, required String userId, required String tripId}) {
+  Future<void> sendUserInformationForTicket({
+    required String name,
+    required String emailId,
+    required String userId,
+    required String tripId,
+    List<ZendeskCustomField> customFields = const [],
+  }) {
     throw UnimplementedError();
   }
 

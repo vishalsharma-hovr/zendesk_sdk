@@ -20,157 +20,178 @@ import zendesk.support.request.RequestActivity
 import zendesk.support.requestlist.RequestListActivity
 import zendesk.android.Zendesk as zendeskV3
 
-
 class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware {
     private lateinit var channel: MethodChannel
     private var context: Context? = null
     private var activity: Activity? = null
     private var userId: String = ""
-    private var userType: String = ""
-    private var customFieldId: String = ""
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         context = binding.applicationContext
-        channel = MethodChannel(binding.binaryMessenger, "zendesk_sdk")
+        channel = MethodChannel(binding.binaryMessenger, ZendeskSdkChannel.NAME)
         channel.setMethodCallHandler(this)
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
-            "initialize" -> {
-                val url = call.argument<String>("zendeskUrl")
-                val appId = call.argument<String>("appId")
-                val clientId = call.argument<String>("clientId")
-                val name = call.argument<String>("name") ?: ""
-                val emailId = call.argument<String>("emailId") ?: ""
-                userType = call.argument<String>("userType") ?:""
-                userId = call.argument<String>("userId") ?: ""
-                val combinedName = "$name | UserID: $userId"
-                if (url.isNullOrBlank() || appId.isNullOrBlank() || clientId.isNullOrBlank()) {
-                    result.error("INVALID_ARGUMENTS", "Missing required initialization parameters", null)
-                    return
-                }
-
-                try {
-                    context?.let {
-                        Zendesk.INSTANCE.init(it, url, appId, clientId)
-                        Support.INSTANCE.init(Zendesk.INSTANCE)
-                        val identity = AnonymousIdentity.Builder()
-                            .withNameIdentifier(combinedName)
-                            .withEmailIdentifier(emailId)
-                            .build()
-                        AnswerBot.INSTANCE.init(Zendesk.INSTANCE, Support.INSTANCE)
-                        Zendesk.INSTANCE.setIdentity(identity)
-                        Chat.INSTANCE.init(it, clientId, appId)
-                        result.success(null)
-                    }
-                        ?: result.error("NO_CONTEXT", "Context is null", null)
-                } catch (e: Exception) {
-                    result.error("INIT_FAILED", e.localizedMessage, null)
-                }
-            }
-
-            "showHelpCenter" -> {
-                try {
-                    val categoryIdList = call.argument<List<Long>>("categoryIdList") ?: emptyList()
-                    val context = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
-                    val requestActivityConfig = RequestActivity.builder()
-                        .withTags(listOf("user_id:$userId", "mobile_app")) // Tags for new tickets
-                        .config() // Apply globally
-                    HelpCenterActivity.builder()
-                        .withArticlesForCategoryIds(categoryIdList)
-                        .withContactUsButtonVisible(true)
-                        .show(context, requestActivityConfig)
-                } catch (e: Exception) {
-                    result.error("LAUNCH_FAILED", e.localizedMessage, null)
-                }
-            }
-
-            "sendUserInformationForTicket" -> {
-                userId = call.argument<String>("userId") ?: ""
-                val tripId = call.argument<String>("tripId") ?: ""
-
-                if (userId.isEmpty()) {
-                    result.error("INVALID_ARGUMENTS", "Missing userId!", null)
-                }
-                if (tripId.isEmpty()) {
-                    result.error("INVALID_ARGUMENTS", "Missing tripId!", null)
-                }
-
-                val context = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
-                // ✅ Launch RequestActivity (Support SDK ticket form)
-                var listOfCustomField = listOf<CustomField>()
-                //RIDER - 29516552016157
-                if(userType == "RIDER"){
-                    listOfCustomField = listOf(CustomField(29516552016157, userId))
-                }
-                //DRIVER - 29516552016157
-                if(userType == "DRIVER"){
-                    listOfCustomField = listOf(CustomField(29516536736157, userId))
-                }
-
-                val config = RequestActivity.builder()
-                    .withCustomFields(listOfCustomField)
-                    .withTags(listOf("user_id:$userId", "trip_id:$tripId"))
-                    .intent(context)
-
-                context.startActivity(config)
-                result.success(null)
-            }
-
-            // ✅ Optional: Add method to show all tickets if needed
-            "showListOfTickets" -> {
-                try {
-                    val context = activity
-                        ?: return result.error("NO_ACTIVITY", "No activity attached", null)
-                    val requestProvider = Support.INSTANCE
-                        .provider()
-                        ?.requestProvider()
-                    requestProvider?.getAllRequests(object : ZendeskCallback<List<Request>>() {
-                        override fun onSuccess(requests: List<Request>?) {
-                            requests?.forEach {
-                                Log.d("ZENDESK", "Ticket ${it.id} - ${it.subject}")
-                            }
-                            // AFTER tickets loaded, show UI
-                            RequestListActivity.builder().show(context)
-                        }
-
-                        override fun onError(errorResponse: ErrorResponse?) {
-                            Log.e("ZENDESK", errorResponse?.reason ?: "Unknown error")
-                            // Still show UI even if fetch fails
-                            RequestListActivity.builder().show(context)
-                        }
-                    })
-                    result.success(null)
-                } catch (e: Exception) {
-                    result.error("LAUNCH_FAILED", e.localizedMessage, null)
-                }
-            }
-
-            "startChat" -> {
-                val channelId = call.argument<String>("channelId") ?: ""
-                try {
-                    val context = activity ?: return result.error("NO_ACTIVITY", "No activity attached", null)
-                    zendeskV3.initialize(
-                        context = context,
-                        channelKey = channelId,
-                        successCallback = { zendesk ->
-                            zendesk.messaging.showMessaging(context)
-                        },
-                        failureCallback = { error ->
-                            // Handle failure case
-                            result.error("AUTO_BOT_CHAT", error.localizedMessage, null)
-                        },
-                        messagingFactory = DefaultMessagingFactory()
-                    )
-                } catch (e: Exception) {
-                    result.error("CHAT_ENGINE_FAILED", e.localizedMessage, null)
-                    throw e
-                }
-            }
-
+            ZendeskSdkChannel.Method.INITIALIZE -> initialize(call, result)
+            ZendeskSdkChannel.Method.SHOW_HELP_CENTER -> showHelpCenter(call, result)
+            ZendeskSdkChannel.Method.SEND_USER_INFORMATION_FOR_TICKET ->
+                sendUserInformationForTicket(call, result)
+            ZendeskSdkChannel.Method.SHOW_LIST_OF_TICKETS -> showListOfTickets(result)
+            ZendeskSdkChannel.Method.START_CHAT -> startChat(call, result)
+            ZendeskSdkChannel.Method.START_CHAT_BOT -> startChatBot(result)
+            ZendeskSdkChannel.Method.SHOW_HELP_CENTER_ARTICLE_ID,
+            ZendeskSdkChannel.Method.SHOW_HELP_CENTER_CATEGORY_ID ->
+                result.notImplemented()
             else -> result.notImplemented()
         }
+    }
+
+    private fun initialize(call: MethodCall, result: MethodChannel.Result) {
+        val url = call.argument<String>(ZendeskSdkChannel.Argument.ZENDESK_URL)
+        val appId = call.argument<String>(ZendeskSdkChannel.Argument.APP_ID)
+        val clientId = call.argument<String>(ZendeskSdkChannel.Argument.CLIENT_ID)
+        val name = call.argument<String>(ZendeskSdkChannel.Argument.NAME) ?: ""
+        val emailId = call.argument<String>(ZendeskSdkChannel.Argument.EMAIL_ID) ?: ""
+        userId = call.argument<String>(ZendeskSdkChannel.Argument.USER_ID) ?: ""
+        val combinedName = "$name | UserID: $userId"
+
+        if (url.isNullOrBlank() || appId.isNullOrBlank() || clientId.isNullOrBlank()) {
+            result.error("INVALID_ARGUMENTS", "Missing required initialization parameters", null)
+            return
+        }
+
+        try {
+            val appContext = context
+            if (appContext == null) {
+                result.error("NO_CONTEXT", "Context is null", null)
+                return
+            }
+
+            Zendesk.INSTANCE.init(appContext, url, appId, clientId)
+            Support.INSTANCE.init(Zendesk.INSTANCE)
+            val identity = AnonymousIdentity.Builder()
+                .withNameIdentifier(combinedName)
+                .withEmailIdentifier(emailId)
+                .build()
+            AnswerBot.INSTANCE.init(Zendesk.INSTANCE, Support.INSTANCE)
+            Zendesk.INSTANCE.setIdentity(identity)
+            Chat.INSTANCE.init(appContext, clientId, appId)
+            result.success(null)
+        } catch (e: Exception) {
+            result.error("INIT_FAILED", e.localizedMessage, null)
+        }
+    }
+
+    private fun showHelpCenter(call: MethodCall, result: MethodChannel.Result) {
+        try {
+            val categoryIdList =
+                call.argument<List<Long>>(ZendeskSdkChannel.Argument.CATEGORY_ID_LIST) ?: emptyList()
+            val currentActivity = activity
+                ?: return result.error("NO_ACTIVITY", "No activity attached", null)
+
+            val requestActivityConfig = RequestActivity.builder()
+                .withTags(listOf("user_id:$userId", "mobile_app"))
+                .config()
+
+            HelpCenterActivity.builder()
+                .withArticlesForCategoryIds(categoryIdList)
+                .withContactUsButtonVisible(true)
+                .show(currentActivity, requestActivityConfig)
+
+            result.success(null)
+        } catch (e: Exception) {
+            result.error("LAUNCH_FAILED", e.localizedMessage, null)
+        }
+    }
+
+    private fun sendUserInformationForTicket(call: MethodCall, result: MethodChannel.Result) {
+        userId = call.argument<String>(ZendeskSdkChannel.Argument.USER_ID) ?: ""
+        val tripId = call.argument<String>(ZendeskSdkChannel.Argument.TRIP_ID) ?: ""
+
+        if (userId.isEmpty()) {
+            result.error("INVALID_ARGUMENTS", "Missing userId!", null)
+            return
+        }
+        if (tripId.isEmpty()) {
+            result.error("INVALID_ARGUMENTS", "Missing tripId!", null)
+            return
+        }
+
+        val currentActivity = activity
+            ?: return result.error("NO_ACTIVITY", "No activity attached", null)
+
+        val customFields = parseCustomFields(call)
+
+        val config = RequestActivity.builder()
+            .apply {
+                if (customFields.isNotEmpty()) {
+                    withCustomFields(customFields)
+                }
+            }
+            .withTags(listOf("user_id:$userId", "trip_id:$tripId"))
+            .intent(currentActivity)
+
+        currentActivity.startActivity(config)
+        result.success(null)
+    }
+
+    private fun showListOfTickets(result: MethodChannel.Result) {
+        try {
+            val currentActivity = activity
+                ?: return result.error("NO_ACTIVITY", "No activity attached", null)
+
+            val requestProvider = Support.INSTANCE.provider()?.requestProvider()
+            requestProvider?.getAllRequests(object : ZendeskCallback<List<Request>>() {
+                override fun onSuccess(requests: List<Request>?) {
+                    requests?.forEach {
+                        Log.d("ZENDESK", "Ticket ${it.id} - ${it.subject}")
+                    }
+                    RequestListActivity.builder().show(currentActivity)
+                }
+
+                override fun onError(errorResponse: ErrorResponse?) {
+                    Log.e("ZENDESK", errorResponse?.reason ?: "Unknown error")
+                    RequestListActivity.builder().show(currentActivity)
+                }
+            })
+            result.success(null)
+        } catch (e: Exception) {
+            result.error("LAUNCH_FAILED", e.localizedMessage, null)
+        }
+    }
+
+    private fun startChat(call: MethodCall, result: MethodChannel.Result) {
+        val channelId = call.argument<String>(ZendeskSdkChannel.Argument.CHANNEL_ID) ?: ""
+        if (channelId.isBlank()) {
+            result.error("INVALID_ARGUMENTS", "Missing channelId", null)
+            return
+        }
+
+        try {
+            val currentActivity = activity
+                ?: return result.error("NO_ACTIVITY", "No activity attached", null)
+
+            zendeskV3.initialize(
+                context = currentActivity,
+                channelKey = channelId,
+                successCallback = { zendesk ->
+                    zendesk.messaging.showMessaging(currentActivity)
+                    result.success(null)
+                },
+                failureCallback = { error ->
+                    result.error("CHAT_INIT_FAILED", error.localizedMessage, null)
+                },
+                messagingFactory = DefaultMessagingFactory()
+            )
+        } catch (e: Exception) {
+            result.error("CHAT_ENGINE_FAILED", e.localizedMessage, null)
+        }
+    }
+
+    private fun startChatBot(result: MethodChannel.Result) {
+        result.notImplemented()
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
@@ -191,5 +212,20 @@ class ZendeskSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activit
 
     override fun onDetachedFromActivityForConfigChanges() {
         activity = null
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun parseCustomFields(call: MethodCall): List<CustomField> {
+        val customFieldsArg =
+            call.argument<List<Map<String, Any>>>(ZendeskSdkChannel.Argument.CUSTOM_FIELDS)
+                ?: return emptyList()
+
+        return customFieldsArg.mapNotNull { field ->
+            val fieldId = (field[ZendeskSdkChannel.Argument.FIELD_ID] as? Number)?.toLong()
+                ?: return@mapNotNull null
+            val value = field[ZendeskSdkChannel.Argument.VALUE] as? String
+                ?: return@mapNotNull null
+            CustomField(fieldId, value)
+        }
     }
 }
