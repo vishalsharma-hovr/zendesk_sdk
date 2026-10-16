@@ -14,7 +14,6 @@ buildscript {
 }
 
 apply plugin: "com.android.library"
-apply plugin: "kotlin-android"
 
 android {
     namespace 'com.example.zendesk_sdk'
@@ -27,10 +26,6 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
-    }
-
-    kotlinOptions {
-        jvmTarget = '11'
     }
 
     sourceSets {
@@ -70,4 +65,10 @@ dependencies {
 
     testImplementation "org.jetbrains.kotlin:kotlin-test"
     testImplementation "org.mockito:mockito-core:5.18.0"
+}
+
+// Built-in Kotlin (AGP 9): no Kotlin Gradle Plugin here. Apps still on
+// android.builtInKotlin=false get kotlin-android applied by the Flutter Gradle plugin.
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile).configureEach {
+    compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
 }
